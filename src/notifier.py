@@ -50,7 +50,17 @@ def send_discord_notification(articles_by_category: Dict[str, List[Article]]) ->
         for article in articles:
             priority = article.get("priority")
             icon = priority_icons.get(priority, "•")
-            lines.append(f"{icon} [{article['title']}]({article['link']})")
+            
+            # Title with link
+            lines.append(f"{icon} **[{article['title']}]({article['link']})**")
+            
+            # Description (if available)
+            description = article.get("description")
+            if description:
+                # Truncate description to 200 chars
+                if len(description) > 200:
+                    description = description[:197] + "..."
+                lines.append(f"> {description}")
         
         lines.append("")  # Empty line between categories
         total_count += len(articles)
@@ -58,7 +68,8 @@ def send_discord_notification(articles_by_category: Dict[str, List[Article]]) ->
     
     # Summary line
     summary = ", ".join(category_counts)
-    lines.append(f"총 {total_count}개 ({summary})")
+    lines.append(f"---")
+    lines.append(f"📊 **총 {total_count}개** ({summary})")
     
     message = "\n".join(lines)
     

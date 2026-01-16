@@ -17,7 +17,7 @@ class TestSendDiscordNotification:
         
         articles_by_category = {
             "개발": [
-                {'title': 'Test', 'link': 'https://example.com/1', 'published': None, 'priority': 'high', 'category': '개발'},
+                {'title': 'Test', 'link': 'https://example.com/1', 'description': 'Summary here', 'published': None, 'priority': 'high', 'category': '개발'},
             ]
         }
         
@@ -25,6 +25,12 @@ class TestSendDiscordNotification:
         
         assert result is True
         mock_post.assert_called_once()
+        
+        # Verify formatting
+        call_args = mock_post.call_args
+        message_content = call_args[1]['json']['content']
+        assert '**[Test](https://example.com/1)**' in message_content
+        assert '> Summary here' in message_content
     
     @patch('src.notifier.get_discord_webhook_url', return_value='https://discord.com/webhook')
     @patch('src.notifier.requests.post')
@@ -34,7 +40,7 @@ class TestSendDiscordNotification:
         
         articles_by_category = {
             "개발": [
-                {'title': 'Test', 'link': 'https://example.com/1', 'published': None, 'priority': 'high', 'category': '개발'},
+                {'title': 'Test', 'link': 'https://example.com/1', 'description': '', 'published': None, 'priority': 'high', 'category': '개발'},
             ]
         }
         
@@ -57,10 +63,10 @@ class TestSendDiscordNotification:
         
         articles_by_category = {
             "개발": [
-                {'title': 'Dev Article', 'link': 'https://example.com/1', 'published': None, 'priority': 'high', 'category': '개발'},
+                {'title': 'Dev Article', 'link': 'https://example.com/1', 'description': 'Dev summary', 'published': None, 'priority': 'high', 'category': '개발'},
             ],
             "블로그": [
-                {'title': 'Blog Post', 'link': 'https://example.com/2', 'published': None, 'priority': None, 'category': '블로그'},
+                {'title': 'Blog Post', 'link': 'https://example.com/2', 'description': 'Blog summary', 'published': None, 'priority': None, 'category': '블로그'},
             ]
         }
         
@@ -72,3 +78,5 @@ class TestSendDiscordNotification:
         message_content = call_args[1]['json']['content']
         assert '【개발】' in message_content
         assert '【블로그】' in message_content
+        assert '> Dev summary' in message_content
+        assert '> Blog summary' in message_content

@@ -7,13 +7,34 @@ import feedparser
 from typing import TypedDict, List, Optional
 
 
+import re
+
 class Article(TypedDict):
     """Type definition for an article."""
     title: str
     link: str
+    description: Optional[str]  # Added description
     published: Optional[str]
     priority: Optional[str]  # 'high', 'medium', 'low', or None
     category: Optional[str]  # Category name
+
+
+def clean_html(raw_html: str) -> str:
+    """Remove HTML tags and clean up whitespace.
+    
+    Args:
+        raw_html: String containing HTML tags
+        
+    Returns:
+        Cleaned text string
+    """
+    if not raw_html:
+        return ""
+    # Remove HTML tags
+    clean_text = re.sub(r'<[^>]+>', '', raw_html)
+    # Replace multiple whitespaces/newlines with a single space
+    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+    return clean_text
 
 
 def parse_feed(url: str) -> List[Article]:
@@ -23,7 +44,7 @@ def parse_feed(url: str) -> List[Article]:
         url: RSS feed URL to parse
         
     Returns:
-        List of articles with title, link, and published date
+        List of articles with title, link, description, and published date
     """
     articles: List[Article] = []
     
@@ -31,9 +52,14 @@ def parse_feed(url: str) -> List[Article]:
         feed = feedparser.parse(url)
         
         for entry in feed.entries:
+            # Get description or summary
+            raw_description = entry.get("summary") or entry.get("description") or ""
+            description = clean_html(raw_description)
+            
             article: Article = {
                 "title": entry.get("title", "Untitled"),
                 "link": entry.get("link", ""),
+                "description": description,
                 "published": entry.get("published", None),
                 "priority": None,  # Will be set by keyword filter
                 "category": None,  # Will be set when parsing by category

@@ -81,8 +81,8 @@ class TestFilterNewArticles:
         mock_get_processed.return_value = {'https://example.com/old'}
         
         articles = [
-            {'title': 'Old Article', 'link': 'https://example.com/old', 'published': None},
-            {'title': 'New Article', 'link': 'https://example.com/new', 'published': None},
+            {'title': 'Old Article', 'link': 'https://example.com/old', 'description': '', 'published': None},
+            {'title': 'New Article', 'link': 'https://example.com/new', 'description': '', 'published': None},
         ]
         
         result = filter_new_articles(articles)
@@ -96,8 +96,8 @@ class TestFilterNewArticles:
         mock_get_processed.return_value = set()
         
         articles = [
-            {'title': 'Article 1', 'link': 'https://example.com/1', 'published': None},
-            {'title': 'Article 2', 'link': 'https://example.com/2', 'published': None},
+            {'title': 'Article 1', 'link': 'https://example.com/1', 'description': '', 'published': None},
+            {'title': 'Article 2', 'link': 'https://example.com/2', 'description': '', 'published': None},
         ]
         
         result = filter_new_articles(articles)
