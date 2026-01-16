@@ -54,14 +54,35 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your-webhook-url
 
 > ⚠️ **주의**: `.env` 파일은 `.gitignore`에 포함되어 있으므로 Git에 커밋되지 않습니다.
 
-### 3. RSS 피드 설정
+### 3. RSS 피드 및 카테고리 설정
 
-`src/config.py` 파일을 열어 `FEED_URLS` 리스트에 테스트할 RSS 피드 추가:
+`src/config.py` 파일을 열어 `FEED_CATEGORIES` 설정을 확인하거나 수정합니다:
 
 ```python
-FEED_URLS = [
-    "https://news.ycombinator.com/rss",  # 예시: Hacker News
-]
+FEED_CATEGORIES = {
+    "개발": {
+        "enabled": True,
+        "emoji": "💻",
+        "feeds": [
+            "https://hnrss.org/show",
+        ],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": ["AI", "Python"],
+            "exclude": ["광고"]
+        }
+    },
+    "블로그": {
+        "enabled": True,
+        "emoji": "📝",
+        "feeds": [
+            "https://rss.blog.naver.com/ranto28.xml",
+        ],
+        "keyword_filters": {
+            "enabled": False,
+        }
+    }
+}
 ```
 
 ## ✅ 테스트 실행
