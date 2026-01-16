@@ -55,7 +55,7 @@ class TestSaveArticle:
         result = save_article(article)
         
         assert result is True
-        mock_client.table.return_value.insert.assert_called_once()
+        mock_client.table.return_value.upsert.assert_called_once()
     
     @patch('src.db.get_supabase_key', return_value='test-key')
     @patch('src.db.get_supabase_url', return_value='https://test.supabase.co')
@@ -63,7 +63,7 @@ class TestSaveArticle:
     def test_save_article_failure(self, mock_get_client, mock_url, mock_key):
         """Should return False on database error."""
         mock_client = MagicMock()
-        mock_client.table.return_value.insert.return_value.execute.side_effect = Exception("DB error")
+        mock_client.table.return_value.upsert.return_value.execute.side_effect = Exception("DB error")
         mock_get_client.return_value = mock_client
         
         article = {'title': 'Test', 'link': 'https://example.com/1', 'published': None}
@@ -103,3 +103,19 @@ class TestFilterNewArticles:
         result = filter_new_articles(articles)
         
         assert len(result) == 2
+
+    @patch('src.db.get_processed_links')
+    def test_filters_duplicate_articles(self, mock_get_processed):
+        """Should deduplicate articles with the same link before filtering."""
+        mock_get_processed.return_value = set()
+        
+        articles = [
+            {'title': 'Article 1', 'link': 'https://example.com/1', 'description': '', 'published': None},
+            {'title': 'Article 1 Duplicate', 'link': 'https://example.com/1', 'description': '', 'published': None},
+            {'title': 'Article 2', 'link': 'https://example.com/2', 'description': '', 'published': None},
+        ]
+        
+        result = filter_new_articles(articles)
+        
+        assert len(result) == 2
+        assert {a['link'] for a in result} == {'https://example.com/1', 'https://example.com/2'}

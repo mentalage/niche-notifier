@@ -49,13 +49,13 @@ def save_article(article: Article) -> bool:
     client = get_client()
     
     try:
-        client.table(TABLE_NAME).insert({
+        client.table(TABLE_NAME).upsert({
             "link": article["link"],
             "title": article["title"],
             "published_at": article["published"],
-            "category": article.get("category"),  # 새로 추가
-            "priority": article.get("priority"),  # 새로 추가
-        }).execute()
+            "category": article.get("category"),
+            "priority": article.get("priority"),
+        }, on_conflict="link").execute()
         return True
     except Exception as e:
         print(f"Error saving article: {e}")
@@ -71,12 +71,19 @@ def filter_new_articles(articles: List[Article]) -> List[Article]:
     Returns:
         List of new articles not in database
     """
+    # Deduplicate input articles by link
+    unique_articles = {}
+    for article in articles:
+        link = article["link"]
+        if link not in unique_articles:
+            unique_articles[link] = article
+    
     processed_links = get_processed_links()
     
     new_articles = [
-        article for article in articles 
-        if article["link"] not in processed_links
+        article for link, article in unique_articles.items()
+        if link not in processed_links
     ]
     
-    print(f"Found {len(new_articles)} new articles out of {len(articles)} total")
+    print(f"Found {len(new_articles)} new articles out of {len(articles)} total (deduplicated: {len(unique_articles)})")
     return new_articles
