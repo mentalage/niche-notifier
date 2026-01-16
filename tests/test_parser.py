@@ -23,7 +23,11 @@ class TestParseFeed:
         assert len(result) == 2
         assert result[0]['title'] == 'Test Article 1'
         assert result[0]['link'] == 'https://example.com/1'
+        assert result[0]['priority'] is None
+        assert result[0]['category'] is None
         assert result[1]['title'] == 'Test Article 2'
+        assert result[1]['priority'] is None
+        assert result[1]['category'] is None
     
     @patch('src.parser.feedparser.parse')
     def test_parse_feed_skips_entries_without_link(self, mock_parse):
@@ -40,6 +44,8 @@ class TestParseFeed:
         
         assert len(result) == 1
         assert result[0]['title'] == 'Has Link'
+        assert result[0]['priority'] is None
+        assert result[0]['category'] is None
     
     @patch('src.parser.feedparser.parse')
     def test_parse_feed_handles_missing_title(self, mock_parse):
@@ -53,6 +59,8 @@ class TestParseFeed:
         result = parse_feed('https://example.com/feed')
         
         assert result[0]['title'] == 'Untitled'
+        assert result[0]['priority'] is None
+        assert result[0]['category'] is None
     
     @patch('src.parser.feedparser.parse')
     def test_parse_feed_handles_error(self, mock_parse):
@@ -71,8 +79,8 @@ class TestParseAllFeeds:
     def test_parse_all_feeds_combines_results(self, mock_parse_feed):
         """Should combine articles from all feeds."""
         mock_parse_feed.side_effect = [
-            [{'title': 'Feed 1 Article', 'link': 'https://feed1.com/1', 'published': None}],
-            [{'title': 'Feed 2 Article', 'link': 'https://feed2.com/1', 'published': None}],
+            [{'title': 'Feed 1 Article', 'link': 'https://feed1.com/1', 'published': None, 'priority': None, 'category': None}],
+            [{'title': 'Feed 2 Article', 'link': 'https://feed2.com/1', 'published': None, 'priority': None, 'category': None}],
         ]
         
         result = parse_all_feeds(['https://feed1.com', 'https://feed2.com'])
@@ -86,7 +94,7 @@ class TestParseAllFeeds:
         """Should handle feeds that return no articles."""
         mock_parse_feed.side_effect = [
             [],
-            [{'title': 'Only Article', 'link': 'https://feed.com/1', 'published': None}],
+            [{'title': 'Only Article', 'link': 'https://feed.com/1', 'published': None, 'priority': None, 'category': None}],
         ]
         
         result = parse_all_feeds(['https://empty.com', 'https://feed.com'])

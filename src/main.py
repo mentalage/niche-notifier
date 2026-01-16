@@ -3,8 +3,8 @@
 Orchestrates the RSS collection, filtering, notification, and storage workflow.
 """
 
-from src.config import FEED_URLS
-from src.parser import parse_all_feeds
+from src.config import FEED_CATEGORIES
+from src.parser import parse_feeds_by_category
 from src.db import filter_new_articles, save_article
 from src.notifier import send_discord_notification
 
@@ -13,46 +13,62 @@ def main() -> None:
     """Main execution function.
     
     Workflow:
-    1. Parse all configured RSS feeds
-    2. Filter out already processed articles
-    3. Send Discord notification for new articles
-    4. Save new articles to database
+    1. Parse feeds by category
+    2. Each category applies its own keyword filters
+    3. Filter out already processed articles
+    4. Send category-grouped notification
+    5. Save new articles to database
     """
-    print("=== Notify Niche RSS Collector ===")
-    print(f"Processing {len(FEED_URLS)} feeds...")
+    print("=== Notify Niche RSS Collector (Category-Based) ===")
+    print(f"Processing {len(FEED_CATEGORIES)} categories...")
     
-    if not FEED_URLS:
-        print("Warning: No RSS feed URLs configured. Add feeds to src/config.py")
+    if not FEED_CATEGORIES:
+        print("Warning: No categories configured. Add categories to src/config.py")
         return
     
-    # Step 1: Parse all feeds
-    articles = parse_all_feeds(FEED_URLS)
-    print(f"Total articles parsed: {len(articles)}")
+    # Step 1 & 2: Parse feeds by category and apply keyword filters
+    articles_by_category = parse_feeds_by_category(FEED_CATEGORIES)
     
-    if not articles:
-        print("No articles found in feeds")
+    if not articles_by_category:
+        print("No articles found in any category")
         return
     
-    # Step 2: Filter new articles
-    new_articles = filter_new_articles(articles)
+    # Flatten articles for database filtering
+    all_articles = []
+    for articles in articles_by_category.values():
+        all_articles.extend(articles)
+    
+    total_before = len(all_articles)
+    print(f"\nTotal articles after filtering: {total_before}")
+    
+    # Step 3: Filter out already processed articles
+    new_articles = filter_new_articles(all_articles)
     
     if not new_articles:
         print("No new articles to process")
         return
     
-    # Step 3: Send notification
-    notification_sent = send_discord_notification(new_articles)
+    # Group new articles back by category
+    new_by_category = {}
+    for article in new_articles:
+        category = article.get("category", "기타")
+        if category not in new_by_category:
+            new_by_category[category] = []
+        new_by_category[category].append(article)
+    
+    # Step 4: Send notification
+    notification_sent = send_discord_notification(new_by_category)
     
     if not notification_sent:
         print("Warning: Failed to send some notifications")
     
-    # Step 4: Save articles to database
+    # Step 5: Save articles to database
     saved_count = 0
     for article in new_articles:
         if save_article(article):
             saved_count += 1
     
-    print(f"Saved {saved_count}/{len(new_articles)} new articles to database")
+    print(f"\nSaved {saved_count}/{len(new_articles)} new articles to database")
     print("=== Execution complete ===")
 
 

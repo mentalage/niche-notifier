@@ -45,14 +45,46 @@ def get_discord_webhook_url() -> str:
     return get_env_var("DISCORD_WEBHOOK_URL") or ""
 
 
-# RSS Feed URLs to monitor
-# TODO: Add your RSS feed URLs here
-FEED_URLS = [
-    # 메르의 블로그
-    "https://rss.blog.naver.com/ranto28.xml",
-    
-    # Hacker News
-    "https://hnrss.org/show", # 새로운 프로젝트
-    "https://hnrss.org/newest?q=AI", # AI 관련 모니터링
-    "https://hnrss.org/best",  # 인기 있는 프로젝트
-]
+# Category-Based RSS Feed Configuration
+# Each category has its own feeds and keyword filters
+FEED_CATEGORIES = {
+    "개발": {
+        "enabled": True,
+        "emoji": "💻",
+        "feeds": [
+            "https://hnrss.org/show",
+            "https://hnrss.org/newest?q=AI",
+            "https://hnrss.org/best",
+        ],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": [
+                "AI", "ChatGPT", "GPT", "Gemini", "LLM",
+                "인공지능", "Artificial Intelligence", "딥러닝", "Deep Learning"
+            ],
+            "medium_priority": [
+                "Python", "Docker", "AWS", "Kubernetes", "머신러닝", "Machine Learning",
+                "프론트엔드", "Frontend", "백엔드", "Backend", "DevOps"
+            ],
+            "low_priority": [
+                "프로그래밍", "Programming", "개발", "Development", 
+                "코딩", "Coding", "웹", "Web", "앱", "App"
+            ],
+            "exclude": [
+                "광고", "Ad", "Advertisement", "스폰서", "Sponsor",
+                "홍보", "Promotion", "제휴", "Affiliate"
+            ]
+        }
+    },
+    "블로그": {
+        "enabled": True,
+        "emoji": "📝",
+        "feeds": [
+            "https://rss.blog.naver.com/ranto28.xml",
+        ],
+        "keyword_filters": {
+            "enabled": False,  # 모든 블로그 글 받기
+        }
+    }
+}
+

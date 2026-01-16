@@ -53,6 +53,8 @@ def save_article(article: Article) -> bool:
             "link": article["link"],
             "title": article["title"],
             "published_at": article["published"],
+            "category": article.get("category"),  # 새로 추가
+            "priority": article.get("priority"),  # 새로 추가
         }).execute()
         return True
     except Exception as e:

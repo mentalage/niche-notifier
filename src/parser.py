@@ -12,6 +12,8 @@ class Article(TypedDict):
     title: str
     link: str
     published: Optional[str]
+    priority: Optional[str]  # 'high', 'medium', 'low', or None
+    category: Optional[str]  # Category name
 
 
 def parse_feed(url: str) -> List[Article]:
@@ -33,6 +35,8 @@ def parse_feed(url: str) -> List[Article]:
                 "title": entry.get("title", "Untitled"),
                 "link": entry.get("link", ""),
                 "published": entry.get("published", None),
+                "priority": None,  # Will be set by keyword filter
+                "category": None,  # Will be set when parsing by category
             }
             
             if article["link"]:  # Only include entries with valid links
@@ -61,3 +65,129 @@ def parse_all_feeds(urls: List[str]) -> List[Article]:
         print(f"Parsed {len(articles)} articles from {url}")
     
     return all_articles
+
+
+def filter_articles_by_keywords(
+    articles: List[Article], 
+    keywords_config: dict
+) -> List[Article]:
+    """Filter articles based on keyword configuration.
+    
+    Args:
+        articles: List of articles to filter
+        keywords_config: Dictionary containing keyword filtering rules
+        
+    Returns:
+        Filtered list of articles with priority field set
+    """
+    # If filtering is disabled, return all articles
+    if not keywords_config.get("enabled", True):
+        return articles
+    
+    # If no keywords configured, return all articles
+    has_keywords = any([
+        keywords_config.get("high_priority"),
+        keywords_config.get("medium_priority"),
+        keywords_config.get("low_priority")
+    ])
+    
+    if not has_keywords:
+        return articles
+    
+    filtered_articles: List[Article] = []
+    exclude_keywords = keywords_config.get("exclude", [])
+    
+    for article in articles:
+        title_lower = article["title"].lower()
+        
+        # Check exclude keywords first
+        should_exclude = any(
+            keyword.lower() in title_lower 
+            for keyword in exclude_keywords
+        )
+        
+        if should_exclude:
+            continue
+        
+        # Check priority keywords (high -> medium -> low)
+        priority = None
+        
+        for keyword in keywords_config.get("high_priority", []):
+            if keyword.lower() in title_lower:
+                priority = "high"
+                break
+        
+        if not priority:
+            for keyword in keywords_config.get("medium_priority", []):
+                if keyword.lower() in title_lower:
+                    priority = "medium"
+                    break
+        
+        if not priority:
+            for keyword in keywords_config.get("low_priority", []):
+                if keyword.lower() in title_lower:
+                    priority = "low"
+                    break
+        
+        # Only include articles that matched at least one keyword
+        if priority:
+            article["priority"] = priority
+            filtered_articles.append(article)
+    
+    return filtered_articles
+
+
+def parse_feeds_by_category(categories: dict) -> dict:
+    """Parse RSS feeds organized by category.
+    
+    Args:
+        categories: Dictionary of category configurations
+        
+    Returns:
+        Dictionary mapping category names to lists of filtered articles
+    """
+    from typing import Dict
+    
+    results: Dict[str, List[Article]] = {}
+    
+    for category_name, config in categories.items():
+        # Skip disabled categories
+        if not config.get("enabled", True):
+            print(f"Skipping disabled category: {category_name}")
+            continue
+        
+        feeds = config.get("feeds", [])
+        if not feeds:
+            print(f"No feeds configured for category: {category_name}")
+            continue
+        
+        print(f"\n=== Processing category: {category_name} ===")
+        
+        # Parse all feeds in this category
+        category_articles: List[Article] = []
+        for feed_url in feeds:
+            articles = parse_feed(feed_url)
+            
+            # Set category for each article
+            for article in articles:
+                article["category"] = category_name
+            
+            category_articles.extend(articles)
+            print(f"Parsed {len(articles)} articles from {feed_url}")
+        
+        print(f"Total {len(category_articles)} articles in category: {category_name}")
+        
+        # Apply keyword filtering for this category
+        keyword_config = config.get("keyword_filters", {})
+        filtered_articles = filter_articles_by_keywords(
+            category_articles, 
+            keyword_config
+        )
+        
+        print(f"After filtering: {len(filtered_articles)} articles")
+        
+        if filtered_articles:
+            results[category_name] = filtered_articles
+    
+    return results
+
