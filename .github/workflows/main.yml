@@ -1,6 +1,9 @@
 name: RSS Collector
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     # Run at 00:00 UTC (09:00 KST) and 09:00 UTC (18:00 KST)
     - cron: "0 0 * * *"
