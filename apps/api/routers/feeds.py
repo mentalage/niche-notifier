@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException
 from typing import List, Optional
-from api.schemas import Feed, FeedCreate, FeedUpdate
+from apps.api.schemas import Feed, FeedCreate, FeedUpdate
 from src.db import get_feeds, add_feed, update_feed, remove_feed, get_client, FEEDS_TABLE
 
 router = APIRouter(prefix="/feeds", tags=["feeds"])

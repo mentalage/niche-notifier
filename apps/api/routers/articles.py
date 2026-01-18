@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Query
 from typing import List, Optional
-from api.schemas import ArticleSummary, PreviewRequest, PreviewResponse, DiscordEmbed
+from apps.api.schemas import ArticleSummary, PreviewRequest, PreviewResponse, DiscordEmbed
 from src.db import get_client, TABLE_NAME
 from src.config import FEED_CATEGORIES
 from src.notifier import (

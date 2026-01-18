@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
-from api.main import app
+from apps.api.main import app
 
 
 client = TestClient(app)
@@ -28,7 +28,7 @@ class TestHealthEndpoints:
 class TestFeedsAPI:
     """Test feeds API endpoints."""
     
-    @patch('api.routers.feeds.get_feeds')
+    @patch('apps.api.routers.feeds.get_feeds')
     def test_list_feeds(self, mock_get_feeds):
         """Should return list of feeds."""
         mock_get_feeds.return_value = [
@@ -41,7 +41,7 @@ class TestFeedsAPI:
         assert len(response.json()) == 1
         assert response.json()[0]["name"] == "Test Feed"
     
-    @patch('api.routers.feeds.add_feed')
+    @patch('apps.api.routers.feeds.add_feed')
     def test_create_feed_success(self, mock_add_feed):
         """Should create a new feed."""
         mock_add_feed.return_value = True
@@ -56,7 +56,7 @@ class TestFeedsAPI:
         assert response.status_code == 200
         assert "successfully" in response.json()["message"]
     
-    @patch('api.routers.feeds.add_feed')
+    @patch('apps.api.routers.feeds.add_feed')
     def test_create_feed_failure(self, mock_add_feed):
         """Should return 400 when feed creation fails."""
         mock_add_feed.return_value = False
@@ -69,7 +69,7 @@ class TestFeedsAPI:
         
         assert response.status_code == 400
     
-    @patch('api.routers.feeds.update_feed')
+    @patch('apps.api.routers.feeds.update_feed')
     def test_update_feed_success(self, mock_update_feed):
         """Should update an existing feed."""
         mock_update_feed.return_value = True
@@ -81,7 +81,7 @@ class TestFeedsAPI:
         
         assert response.status_code == 200
     
-    @patch('api.routers.feeds.update_feed')
+    @patch('apps.api.routers.feeds.update_feed')
     def test_update_feed_empty_body(self, mock_update_feed):
         """Should return 400 when no fields to update."""
         response = client.put(
@@ -91,7 +91,7 @@ class TestFeedsAPI:
         
         assert response.status_code == 400
     
-    @patch('api.routers.feeds.remove_feed')
+    @patch('apps.api.routers.feeds.remove_feed')
     def test_delete_feed_success(self, mock_remove_feed):
         """Should delete a feed."""
         mock_remove_feed.return_value = True
@@ -104,8 +104,8 @@ class TestFeedsAPI:
 class TestCategoriesAPI:
     """Test categories API endpoints."""
     
-    @patch('api.routers.categories.get_feeds')
-    @patch('api.routers.categories.FEED_CATEGORIES', {
+    @patch('apps.api.routers.categories.get_feeds')
+    @patch('apps.api.routers.categories.FEED_CATEGORIES', {
         "개발": {"emoji": "💻", "enabled": True},
         "블로그": {"emoji": "📝", "enabled": True}
     })
@@ -123,7 +123,7 @@ class TestCategoriesAPI:
 class TestArticlesAPI:
     """Test articles API endpoints."""
     
-    @patch('api.routers.articles.get_client')
+    @patch('apps.api.routers.articles.get_client')
     def test_list_articles(self, mock_get_client):
         """Should return list of articles."""
         mock_client = MagicMock()
@@ -137,7 +137,7 @@ class TestArticlesAPI:
         assert response.status_code == 200
         assert len(response.json()) == 1
     
-    @patch('api.routers.articles.get_client')
+    @patch('apps.api.routers.articles.get_client')
     def test_generate_preview(self, mock_get_client):
         """Should generate Discord preview."""
         mock_client = MagicMock()

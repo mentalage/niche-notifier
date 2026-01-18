@@ -5,7 +5,7 @@ Notify Niche Web API for managing RSS feeds and viewing articles.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routers import feeds, categories, articles
+from apps.api.routers import feeds, categories, articles
 
 app = FastAPI(
     title="Notify Niche API",

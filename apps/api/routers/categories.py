@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 from typing import List
-from api.schemas import CategoryInfo
+from apps.api.schemas import CategoryInfo
 from src.config import FEED_CATEGORIES
 from src.db import get_feeds
 
