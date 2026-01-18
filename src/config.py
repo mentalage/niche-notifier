@@ -52,9 +52,14 @@ FEED_CATEGORIES = {
         "enabled": True,
         "emoji": "💻",
         "feeds": [
+            # Hacker News
             "https://hnrss.org/show",
             "https://hnrss.org/newest?q=AI",
             "https://hnrss.org/best",
+
+            # Geeknews
+            "https://feeds.feedburner.com/geeknews-feed",
+            
         ],
         "keyword_filters": {
             "enabled": True,
@@ -85,6 +90,19 @@ FEED_CATEGORIES = {
         "keyword_filters": {
             "enabled": False,  # 모든 블로그 글 받기
         }
+    },
+    "언론": {
+        "enabled": True,
+        "emoji": "📰",
+        "feeds": [
+            "https://rss.blog.naver.com/ranto28.xml",
+        ],
+        "keyword_filters": {
+            "enabled": False,  # 모든 블로그 글 받기
+        }
+    },
+    "기술블로그": {
+
     }
 }
 

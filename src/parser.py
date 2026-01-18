@@ -9,6 +9,10 @@ from typing import TypedDict, List, Optional
 
 import re
 
+# Maximum articles to fetch per RSS feed
+MAX_ARTICLES_PER_FEED = 10
+
+
 class Article(TypedDict):
     """Type definition for an article."""
     title: str
@@ -17,6 +21,7 @@ class Article(TypedDict):
     published: Optional[str]
     priority: Optional[str]  # 'high', 'medium', 'low', or None
     category: Optional[str]  # Category name
+    feed_url: Optional[str]  # Source feed URL
 
 
 def clean_html(raw_html: str) -> str:
@@ -37,11 +42,12 @@ def clean_html(raw_html: str) -> str:
     return clean_text
 
 
-def parse_feed(url: str) -> List[Article]:
+def parse_feed(url: str, max_articles: int = MAX_ARTICLES_PER_FEED) -> List[Article]:
     """Parse a single RSS feed and extract articles.
     
     Args:
         url: RSS feed URL to parse
+        max_articles: Maximum number of articles to return per feed
         
     Returns:
         List of articles with title, link, description, and published date
@@ -63,6 +69,7 @@ def parse_feed(url: str) -> List[Article]:
                 "published": entry.get("published", None),
                 "priority": None,  # Will be set by keyword filter
                 "category": None,  # Will be set when parsing by category
+                "feed_url": url,   # Track source feed URL
             }
             
             if article["link"]:  # Only include entries with valid links
@@ -71,7 +78,8 @@ def parse_feed(url: str) -> List[Article]:
     except Exception as e:
         print(f"Error parsing feed {url}: {e}")
     
-    return articles
+    # Limit articles per feed
+    return articles[:max_articles]
 
 
 def parse_all_feeds(urls: List[str]) -> List[Article]:

@@ -1,12 +1,106 @@
 """Discord Notification module.
 
-Sends article notifications via Discord Webhook with category grouping.
+Sends article notifications via Discord Webhook with category grouping using embeds.
 """
 
 import requests
 from typing import Dict, List
 from src.config import get_discord_webhook_url, FEED_CATEGORIES
 from src.parser import Article
+
+# Discord API limits
+MAX_EMBEDS_PER_MESSAGE = 10
+MAX_EMBED_TITLE_LENGTH = 256
+MAX_EMBED_DESCRIPTION_LENGTH = 4096
+
+# Priority colors (Discord uses decimal color values)
+PRIORITY_COLORS = {
+    "high": 0xFF4444,    # Red
+    "medium": 0xFFD700,  # Gold
+    "low": 0x4499FF,     # Blue
+    None: 0x808080       # Gray
+}
+
+# Priority icons
+PRIORITY_ICONS = {
+    "high": "🔥",
+    "medium": "⭐",
+    "low": "📌",
+    None: "•"
+}
+
+
+def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
+    """Truncate text to max_length with suffix.
+    
+    Args:
+        text: The text to truncate
+        max_length: Maximum allowed length
+        suffix: Suffix to append when truncated
+        
+    Returns:
+        Truncated text with suffix if needed
+    """
+    if not text:
+        return ""
+    if len(text) <= max_length:
+        return text
+    return text[:max_length - len(suffix)] + suffix
+
+
+def build_article_embed(article: Article, category_name: str, emoji: str) -> dict:
+    """Build a Discord embed for a single article.
+    
+    Args:
+        article: Article dictionary with title, link, description, priority
+        category_name: Name of the category for footer
+        emoji: Category emoji for footer
+        
+    Returns:
+        Discord embed dictionary
+    """
+    priority = article.get("priority")
+    color = PRIORITY_COLORS.get(priority, PRIORITY_COLORS[None])
+    icon = PRIORITY_ICONS.get(priority, "•")
+    
+    # Truncate title and description
+    title = truncate_text(article['title'], MAX_EMBED_TITLE_LENGTH - len(icon) - 1)
+    description = article.get("description", "")
+    if description:
+        description = truncate_text(description, 500)  # Use 500 chars for cleaner display
+    
+    embed = {
+        "title": f"{icon} {title}",
+        "url": article['link'],
+        "color": color,
+        "footer": {
+            "text": f"{emoji} {category_name}"
+        }
+    }
+    
+    if description:
+        embed["description"] = description
+    
+    return embed
+
+
+def chunk_embeds(embeds: List[dict], max_per_chunk: int = MAX_EMBEDS_PER_MESSAGE) -> List[List[dict]]:
+    """Split embeds into chunks of max_per_chunk size.
+    
+    Args:
+        embeds: List of embed dictionaries
+        max_per_chunk: Maximum embeds per chunk (default: 10)
+        
+    Returns:
+        List of embed chunks
+    """
+    if not embeds:
+        return []
+    
+    chunks = []
+    for i in range(0, len(embeds), max_per_chunk):
+        chunks.append(embeds[i:i + max_per_chunk])
+    return chunks
 
 
 def send_discord_notification(articles_by_category: Dict[str, List[Article]]) -> bool:
@@ -22,16 +116,8 @@ def send_discord_notification(articles_by_category: Dict[str, List[Article]]) ->
         print("No articles to notify")
         return True
     
-    # Priority icon mapping
-    priority_icons = {
-        "high": "🔥",
-        "medium": "⭐",
-        "low": "📌",
-        None: "•"
-    }
-    
-    # Build message with category sections
-    lines = ["📰 **새로운 기사가 도착했습니다!**\n"]
+    # Build all embeds
+    all_embeds = []
     total_count = 0
     category_counts = []
     
@@ -43,46 +129,49 @@ def send_discord_notification(articles_by_category: Dict[str, List[Article]]) ->
         category_config = FEED_CATEGORIES.get(category_name, {})
         emoji = category_config.get("emoji", "📂")
         
-        # Category header
-        lines.append(f"{emoji} **【{category_name}】**")
-        
-        # Articles in this category
+        # Build embeds for each article (limits already applied per-feed in parser)
         for article in articles:
-            priority = article.get("priority")
-            icon = priority_icons.get(priority, "•")
-            
-            # Title with link
-            lines.append(f"{icon} **[{article['title']}]({article['link']})**")
-            
-            # Description (if available)
-            description = article.get("description")
-            if description:
-                # Truncate description to 200 chars
-                if len(description) > 200:
-                    description = description[:197] + "..."
-                lines.append(f"> {description}")
+            embed = build_article_embed(article, category_name, emoji)
+            all_embeds.append(embed)
         
-        lines.append("")  # Empty line between categories
         total_count += len(articles)
         category_counts.append(f"{category_name} {len(articles)}")
     
-    # Summary line
-    summary = ", ".join(category_counts)
-    lines.append(f"---")
-    lines.append(f"📊 **총 {total_count}개** ({summary})")
-    
-    message = "\n".join(lines)
-    
-    # Send message
-    try:
-        response = requests.post(
-            get_discord_webhook_url(),
-            json={"content": message},
-            timeout=10
-        )
-        response.raise_for_status()
-        print(f"Successfully sent notification for {total_count} articles")
+    if not all_embeds:
+        print("No embeds to send")
         return True
-    except Exception as e:
-        print(f"Error sending Discord notification: {e}")
-        return False
+    
+    # Chunk embeds for multiple messages if needed
+    embed_chunks = chunk_embeds(all_embeds)
+    
+    # Summary text for the first message
+    summary = ", ".join(category_counts)
+    header_content = f"📰 **새로운 기사가 도착했습니다!** (총 {total_count}개: {summary})"
+    
+    # Send each chunk
+    webhook_url = get_discord_webhook_url()
+    success = True
+    
+    for i, chunk in enumerate(embed_chunks):
+        payload = {"embeds": chunk}
+        
+        # Add header content only to the first message
+        if i == 0:
+            payload["content"] = header_content
+        
+        try:
+            response = requests.post(
+                webhook_url,
+                json=payload,
+                timeout=10
+            )
+            response.raise_for_status()
+            print(f"Successfully sent notification chunk {i + 1}/{len(embed_chunks)}")
+        except Exception as e:
+            print(f"Error sending Discord notification chunk {i + 1}: {e}")
+            success = False
+    
+    if success:
+        print(f"Successfully sent all notifications for {total_count} articles")
+    
+    return success

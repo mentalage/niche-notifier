@@ -87,3 +87,115 @@ def filter_new_articles(articles: List[Article]) -> List[Article]:
     
     print(f"Found {len(new_articles)} new articles out of {len(articles)} total (deduplicated: {len(unique_articles)})")
     return new_articles
+
+
+# ============================================
+# Feeds Table Management (for future Web UI)
+# ============================================
+
+FEEDS_TABLE = "feeds"
+
+
+def get_feeds(category: str = None, enabled_only: bool = True) -> List[dict]:
+    """Get all RSS feeds from database.
+    
+    Args:
+        category: Optional category filter
+        enabled_only: If True, only return enabled feeds
+        
+    Returns:
+        List of feed dictionaries
+    """
+    client = get_client()
+    
+    try:
+        query = client.table(FEEDS_TABLE).select("*")
+        
+        if category:
+            query = query.eq("category", category)
+        
+        if enabled_only:
+            query = query.eq("enabled", True)
+        
+        response = query.execute()
+        return response.data
+    except Exception as e:
+        print(f"Error fetching feeds: {e}")
+        return []
+
+
+def add_feed(url: str, category: str, name: str = None) -> bool:
+    """Add a new RSS feed to the database.
+    
+    Args:
+        url: RSS feed URL
+        category: Category name for the feed
+        name: Optional display name for the feed
+        
+    Returns:
+        True if added successfully, False otherwise
+    """
+    client = get_client()
+    
+    try:
+        client.table(FEEDS_TABLE).insert({
+            "url": url,
+            "category": category,
+            "name": name,
+            "enabled": True,
+        }).execute()
+        print(f"Added feed: {url}")
+        return True
+    except Exception as e:
+        print(f"Error adding feed: {e}")
+        return False
+
+
+def remove_feed(url: str) -> bool:
+    """Remove a RSS feed from the database.
+    
+    Args:
+        url: RSS feed URL to remove
+        
+    Returns:
+        True if removed successfully, False otherwise
+    """
+    client = get_client()
+    
+    try:
+        client.table(FEEDS_TABLE).delete().eq("url", url).execute()
+        print(f"Removed feed: {url}")
+        return True
+    except Exception as e:
+        print(f"Error removing feed: {e}")
+        return False
+
+
+def update_feed(url: str, updates: dict) -> bool:
+    """Update a RSS feed's properties.
+    
+    Args:
+        url: RSS feed URL to update
+        updates: Dictionary of fields to update (name, category, enabled)
+        
+    Returns:
+        True if updated successfully, False otherwise
+    """
+    client = get_client()
+    
+    # Only allow specific fields to be updated
+    allowed_fields = {"name", "category", "enabled", "last_fetched_at"}
+    filtered_updates = {k: v for k, v in updates.items() if k in allowed_fields}
+    
+    if not filtered_updates:
+        print("No valid fields to update")
+        return False
+    
+    try:
+        client.table(FEEDS_TABLE).update(filtered_updates).eq("url", url).execute()
+        print(f"Updated feed: {url}")
+        return True
+    except Exception as e:
+        print(f"Error updating feed: {e}")
+        return False
+
