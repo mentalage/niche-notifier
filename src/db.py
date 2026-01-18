@@ -199,3 +199,39 @@ def update_feed(url: str, updates: dict) -> bool:
         print(f"Error updating feed: {e}")
         return False
 
+
+def sync_feeds_from_config(categories: dict) -> int:
+    """Sync RSS feeds from config to database.
+    
+    This function ensures all feeds defined in config.py are stored in the
+    feeds table. Uses upsert to avoid duplicates.
+    
+    Args:
+        categories: Dictionary of category configurations from config.py
+        
+    Returns:
+        Number of feeds synced
+    """
+    client = get_client()
+    synced_count = 0
+    
+    for category_name, config in categories.items():
+        if not config.get("enabled", True):
+            continue
+        
+        feeds = config.get("feeds", [])
+        for feed_url in feeds:
+            try:
+                client.table(FEEDS_TABLE).upsert({
+                    "url": feed_url,
+                    "category": category_name,
+                    "enabled": True,
+                }, on_conflict="url").execute()
+                synced_count += 1
+            except Exception as e:
+                print(f"Error syncing feed {feed_url}: {e}")
+    
+    print(f"Synced {synced_count} feeds to database")
+    return synced_count
+
+

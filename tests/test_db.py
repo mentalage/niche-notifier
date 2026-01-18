@@ -119,3 +119,65 @@ class TestFilterNewArticles:
         
         assert len(result) == 2
         assert {a['link'] for a in result} == {'https://example.com/1', 'https://example.com/2'}
+
+
+class TestSyncFeedsFromConfig:
+    """Test cases for sync_feeds_from_config function."""
+    
+    @patch('src.db.get_supabase_key', return_value='test-key')
+    @patch('src.db.get_supabase_url', return_value='https://test.supabase.co')
+    @patch('src.db.get_client')
+    def test_sync_feeds_success(self, mock_get_client, mock_url, mock_key):
+        """Should sync all feeds from config to database."""
+        from src.db import sync_feeds_from_config
+        
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        
+        categories = {
+            "개발": {
+                "enabled": True,
+                "feeds": [
+                    "https://example.com/feed1",
+                    "https://example.com/feed2",
+                ]
+            },
+            "블로그": {
+                "enabled": True,
+                "feeds": [
+                    "https://example.com/feed3",
+                ]
+            }
+        }
+        
+        result = sync_feeds_from_config(categories)
+        
+        assert result == 3
+        assert mock_client.table.return_value.upsert.call_count == 3
+    
+    @patch('src.db.get_supabase_key', return_value='test-key')
+    @patch('src.db.get_supabase_url', return_value='https://test.supabase.co')
+    @patch('src.db.get_client')
+    def test_sync_feeds_skips_disabled_categories(self, mock_get_client, mock_url, mock_key):
+        """Should skip disabled categories."""
+        from src.db import sync_feeds_from_config
+        
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        
+        categories = {
+            "개발": {
+                "enabled": True,
+                "feeds": ["https://example.com/feed1"]
+            },
+            "비활성": {
+                "enabled": False,
+                "feeds": ["https://example.com/feed2"]
+            }
+        }
+        
+        result = sync_feeds_from_config(categories)
+        
+        assert result == 1
+        assert mock_client.table.return_value.upsert.call_count == 1
+
