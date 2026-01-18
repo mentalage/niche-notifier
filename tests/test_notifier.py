@@ -6,10 +6,12 @@ from src.notifier import (
     send_discord_notification,
     truncate_text,
     build_article_embed,
+    build_category_header_embed,
     chunk_embeds,
     MAX_EMBED_TITLE_LENGTH,
     MAX_EMBEDS_PER_MESSAGE,
-    PRIORITY_COLORS
+    PRIORITY_COLORS,
+    CATEGORY_HEADER_COLOR
 )
 
 
@@ -109,6 +111,31 @@ class TestBuildArticleEmbed:
             assert embed['color'] == expected_color
 
 
+class TestBuildCategoryHeaderEmbed:
+    """Test cases for build_category_header_embed function."""
+    
+    def test_build_header_basic(self):
+        """Should build header with category name and count."""
+        embed = build_category_header_embed("개발", "💻", 5)
+        
+        assert embed['title'] == "💻 개발"
+        assert embed['description'] == "5개의 새로운 기사"
+        assert embed['color'] == CATEGORY_HEADER_COLOR
+    
+    def test_build_header_with_different_emoji(self):
+        """Should use provided emoji in title."""
+        embed = build_category_header_embed("주식/경제", "📈", 10)
+        
+        assert embed['title'] == "📈 주식/경제"
+        assert "새로운 기사" in embed['description']
+    
+    def test_build_header_single_article(self):
+        """Should work with single article."""
+        embed = build_category_header_embed("블로그", "📝", 1)
+        
+        assert embed['description'] == "1개의 새로운 기사"
+
+
 class TestChunkEmbeds:
     """Test cases for chunk_embeds function."""
     
@@ -173,12 +200,15 @@ class TestSendDiscordNotification:
         assert result is True
         mock_post.assert_called_once()
         
-        # Verify embed structure
+        # Verify embed structure (1 header + 1 article = 2 embeds)
         call_args = mock_post.call_args
         payload = call_args[1]['json']
         assert 'embeds' in payload
-        assert len(payload['embeds']) == 1
-        assert 'Test' in payload['embeds'][0]['title']
+        assert len(payload['embeds']) == 2  # 1 header + 1 article
+        # First embed is category header
+        assert '개발' in payload['embeds'][0]['title']
+        # Second embed is article
+        assert 'Test' in payload['embeds'][1]['title']
     
     @patch('src.notifier.get_discord_webhook_url', return_value='https://discord.com/webhook')
     @patch('src.notifier.requests.post')
@@ -223,7 +253,8 @@ class TestSendDiscordNotification:
         assert result is True
         call_args = mock_post.call_args
         payload = call_args[1]['json']
-        assert len(payload['embeds']) == 2
+        # 2 headers + 2 articles = 4 embeds
+        assert len(payload['embeds']) == 4
     
     @patch('src.notifier.get_discord_webhook_url', return_value='https://discord.com/webhook')
     @patch('src.notifier.requests.post')
@@ -243,7 +274,7 @@ class TestSendDiscordNotification:
         result = send_discord_notification(articles_by_category)
         
         assert result is True
-        # 15 embeds should be chunked into 2 requests: 10 + 5
+        # 1 header + 15 articles = 16 embeds, chunked into 2 requests: 10 + 6
         assert mock_post.call_count == 2
     
     @patch('src.notifier.get_discord_webhook_url', return_value='https://discord.com/webhook')
@@ -266,8 +297,8 @@ class TestSendDiscordNotification:
         assert result is True
         call_args = mock_post.call_args
         payload = call_args[1]['json']
-        # All 8 articles should be in embeds (no category limit in notifier)
-        assert len(payload['embeds']) == 8
+        # 1 header + 8 articles = 9 embeds
+        assert len(payload['embeds']) == 9
     
     @patch('src.notifier.get_discord_webhook_url', return_value='https://discord.com/webhook')
     @patch('src.notifier.requests.post')
@@ -296,5 +327,5 @@ class TestSendDiscordNotification:
         result = send_discord_notification(articles_by_category)
         
         assert result is True
-        # 18 embeds should be split into 2 chunks: 10 + 8
-        assert mock_post.call_count == 2
+        # 3 headers + 18 articles = 21 embeds, chunked into 3 requests: 10 + 10 + 1
+        assert mock_post.call_count == 3

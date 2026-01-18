@@ -49,6 +49,28 @@ def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
     return text[:max_length - len(suffix)] + suffix
 
 
+# Category header color (Discord dark theme)
+CATEGORY_HEADER_COLOR = 0x2F3136
+
+
+def build_category_header_embed(category_name: str, emoji: str, article_count: int) -> dict:
+    """Build a Discord embed for category header.
+    
+    Args:
+        category_name: Name of the category
+        emoji: Category emoji
+        article_count: Number of articles in this category
+        
+    Returns:
+        Discord embed dictionary for category header
+    """
+    return {
+        "title": f"{emoji} {category_name}",
+        "description": f"{article_count}개의 새로운 기사",
+        "color": CATEGORY_HEADER_COLOR,
+    }
+
+
 def build_article_embed(article: Article, category_name: str, emoji: str) -> dict:
     """Build a Discord embed for a single article.
     
@@ -135,6 +157,10 @@ def send_discord_notification(articles_by_category: Dict[str, List[Article]]) ->
         # Get category emoji
         category_config = FEED_CATEGORIES.get(category_name, {})
         emoji = category_config.get("emoji", "📂")
+        
+        # Add category header embed
+        header_embed = build_category_header_embed(category_name, emoji, len(articles))
+        all_embeds.append(header_embed)
         
         # Build embeds for each article (limits already applied per-feed in parser)
         for article in articles:
