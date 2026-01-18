@@ -166,22 +166,30 @@ def send_discord_notification(articles_by_category: Dict[str, List[Article]]) ->
         if i == 0:
             payload["content"] = header_content
         
-        try:
-            response = requests.post(
-                webhook_url,
-                json=payload,
-                timeout=10
-            )
-            response.raise_for_status()
-            print(f"Successfully sent notification chunk {i + 1}/{len(embed_chunks)}")
-            
-            # Add delay between chunks to avoid rate limiting
-            if i < len(embed_chunks) - 1:
-                time.sleep(1)
+        # Retry logic for failed requests
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(
+                    webhook_url,
+                    json=payload,
+                    timeout=10
+                )
+                response.raise_for_status()
+                print(f"Successfully sent notification chunk {i + 1}/{len(embed_chunks)}")
                 
-        except Exception as e:
-            print(f"Error sending Discord notification chunk {i + 1}: {e}")
-            success = False
+                # Add delay between chunks to avoid rate limiting
+                if i < len(embed_chunks) - 1:
+                    time.sleep(1)
+                break  # Success, exit retry loop
+                    
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"Retry {attempt + 1}/{max_retries} for chunk {i + 1}: {e}")
+                    time.sleep(2)  # Wait before retry
+                else:
+                    print(f"Error sending Discord notification chunk {i + 1} after {max_retries} attempts: {e}")
+                    success = False
     
     if success:
         print(f"Successfully sent all notifications for {total_count} articles")
