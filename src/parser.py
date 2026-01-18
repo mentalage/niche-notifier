@@ -23,6 +23,7 @@ class Article(TypedDict):
     category: Optional[str]  # Category name
     feed_url: Optional[str]  # Source feed URL
     feed_name: Optional[str]  # Display name of the feed
+    summary: Optional[str]  # AI-generated summary
 
 
 def clean_html(raw_html: str) -> str:
@@ -73,6 +74,7 @@ def parse_feed(url: str, feed_name: str = None, max_articles: int = MAX_ARTICLES
                 "category": None,  # Will be set when parsing by category
                 "feed_url": url,   # Track source feed URL
                 "feed_name": feed_name,  # Track feed display name
+                "summary": None,  # Will be set by summarizer
             }
             
             if article["link"]:  # Only include entries with valid links

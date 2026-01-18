@@ -55,6 +55,7 @@ def save_article(article: Article) -> bool:
             "published_at": article["published"],
             "category": article.get("category"),
             "priority": article.get("priority"),
+            "summary": article.get("summary"),
         }, on_conflict="link").execute()
         return True
     except Exception as e:

@@ -88,7 +88,10 @@ def build_article_embed(article: Article, category_name: str, emoji: str) -> dic
     
     # Truncate title and description
     title = truncate_text(article['title'], MAX_EMBED_TITLE_LENGTH - len(icon) - 1)
-    description = article.get("description", "")
+    
+    # 요약이 있으면 요약 사용, 없으면 description 사용
+    summary = article.get("summary")
+    description = summary if summary else article.get("description", "")
     if description:
         description = truncate_text(description, 500)  # Use 500 chars for cleaner display
     
