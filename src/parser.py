@@ -22,6 +22,7 @@ class Article(TypedDict):
     priority: Optional[str]  # 'high', 'medium', 'low', or None
     category: Optional[str]  # Category name
     feed_url: Optional[str]  # Source feed URL
+    feed_name: Optional[str]  # Display name of the feed
 
 
 def clean_html(raw_html: str) -> str:
@@ -42,11 +43,12 @@ def clean_html(raw_html: str) -> str:
     return clean_text
 
 
-def parse_feed(url: str, max_articles: int = MAX_ARTICLES_PER_FEED) -> List[Article]:
+def parse_feed(url: str, feed_name: str = None, max_articles: int = MAX_ARTICLES_PER_FEED) -> List[Article]:
     """Parse a single RSS feed and extract articles.
     
     Args:
         url: RSS feed URL to parse
+        feed_name: Display name of the feed
         max_articles: Maximum number of articles to return per feed
         
     Returns:
@@ -70,6 +72,7 @@ def parse_feed(url: str, max_articles: int = MAX_ARTICLES_PER_FEED) -> List[Arti
                 "priority": None,  # Will be set by keyword filter
                 "category": None,  # Will be set when parsing by category
                 "feed_url": url,   # Track source feed URL
+                "feed_name": feed_name,  # Track feed display name
             }
             
             if article["link"]:  # Only include entries with valid links
@@ -199,15 +202,26 @@ def parse_feeds_by_category(categories: dict) -> dict:
         
         # Parse all feeds in this category
         category_articles: List[Article] = []
-        for feed_url in feeds:
-            articles = parse_feed(feed_url)
+        for feed in feeds:
+            # Support both string URLs and dict format {url, name}
+            if isinstance(feed, dict):
+                feed_url = feed.get("url", "")
+                feed_name = feed.get("name")
+            else:
+                feed_url = feed
+                feed_name = None
+            
+            if not feed_url:
+                continue
+            
+            articles = parse_feed(feed_url, feed_name=feed_name)
             
             # Set category for each article
             for article in articles:
                 article["category"] = category_name
             
             category_articles.extend(articles)
-            print(f"Parsed {len(articles)} articles from {feed_url}")
+            print(f"Parsed {len(articles)} articles from {feed_name or feed_url}")
         
         print(f"Total {len(category_articles)} articles in category: {category_name}")
         

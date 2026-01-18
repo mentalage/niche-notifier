@@ -3,6 +3,7 @@
 Sends article notifications via Discord Webhook with category grouping using embeds.
 """
 
+import time
 import requests
 from typing import Dict, List
 from src.config import get_discord_webhook_url, FEED_CATEGORIES
@@ -69,12 +70,18 @@ def build_article_embed(article: Article, category_name: str, emoji: str) -> dic
     if description:
         description = truncate_text(description, 500)  # Use 500 chars for cleaner display
     
+    # Build footer text with optional feed name
+    footer_text = f"{emoji} {category_name}"
+    feed_name = article.get("feed_name")
+    if feed_name:
+        footer_text += f" - {feed_name}"
+    
     embed = {
         "title": f"{icon} {title}",
         "url": article['link'],
         "color": color,
         "footer": {
-            "text": f"{emoji} {category_name}"
+            "text": footer_text
         }
     }
     
@@ -167,6 +174,11 @@ def send_discord_notification(articles_by_category: Dict[str, List[Article]]) ->
             )
             response.raise_for_status()
             print(f"Successfully sent notification chunk {i + 1}/{len(embed_chunks)}")
+            
+            # Add delay between chunks to avoid rate limiting
+            if i < len(embed_chunks) - 1:
+                time.sleep(1)
+                
         except Exception as e:
             print(f"Error sending Discord notification chunk {i + 1}: {e}")
             success = False

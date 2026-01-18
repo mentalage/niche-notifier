@@ -204,7 +204,7 @@ def sync_feeds_from_config(categories: dict) -> int:
     """Sync RSS feeds from config to database.
     
     This function ensures all feeds defined in config.py are stored in the
-    feeds table. Uses upsert to avoid duplicates.
+    feeds table. Uses upsert to avoid duplicates and update names.
     
     Args:
         categories: Dictionary of category configurations from config.py
@@ -220,10 +220,22 @@ def sync_feeds_from_config(categories: dict) -> int:
             continue
         
         feeds = config.get("feeds", [])
-        for feed_url in feeds:
+        for feed in feeds:
+            # Support both string URLs and dict format {url, name}
+            if isinstance(feed, dict):
+                feed_url = feed.get("url", "")
+                feed_name = feed.get("name")
+            else:
+                feed_url = feed
+                feed_name = None
+            
+            if not feed_url:
+                continue
+            
             try:
                 client.table(FEEDS_TABLE).upsert({
                     "url": feed_url,
+                    "name": feed_name,
                     "category": category_name,
                     "enabled": True,
                 }, on_conflict="url").execute()
