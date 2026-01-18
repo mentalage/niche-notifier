@@ -1,0 +1,232 @@
+# 카테고리별 RSS 피드 설정
+# 이 파일을 수정하여 코드 변경 없이 피드를 관리할 수 있습니다.
+#
+# 구조:
+#   카테고리명:
+#     enabled: true/false (카테고리 활성화 여부)
+#     emoji: "이모지" (Discord 알림에 표시)
+#     feeds: (피드 목록)
+#       - url: "RSS URL"
+#         name: "표시 이름"
+#     keyword_filters: (키워드 필터링 설정)
+#       enabled: true/false
+#       high_priority: [키워드 목록]
+#       medium_priority: [키워드 목록]
+#       low_priority: [키워드 목록]
+#       exclude: [제외 키워드 목록]
+
+개발:
+  enabled: true
+  emoji: "💻"
+  feeds:
+    # Hacker News
+    - url: "https://hnrss.org/show"
+      name: "HN Show"
+    - url: "https://hnrss.org/newest?q=AI"
+      name: "HN AI"
+    - url: "https://hnrss.org/best"
+      name: "HN Best"
+
+    # GeekNews (한국 개발자 커뮤니티)
+    - url: "https://feeds.feedburner.com/geeknews-feed"
+      name: "GeekNews"
+
+    # 44bits (클라우드/데브옵스)
+    - url: "https://44bits.io/feed.xml"
+      name: "44bits"
+
+    # Outsider's Dev Story
+    - url: "https://blog.outsider.ne.kr/rss"
+      name: "Outsider"
+
+    # 카카오 기술블로그
+    - url: "https://tech.kakao.com/feed/"
+      name: "카카오"
+
+    # 우아한형제들 기술블로그
+    - url: "https://techblog.woowahan.com/feed/"
+      name: "우아한형제들"
+
+    # 토스 기술블로그
+    - url: "https://toss.tech/rss.xml"
+      name: "토스"
+
+    # 네이버 D2
+    - url: "https://d2.naver.com/d2.atom"
+      name: "네이버 D2"
+
+    # 라인 기술블로그
+    - url: "https://engineering.linecorp.com/ko/feed/"
+      name: "LINE"
+
+    # 당근 기술블로그
+    - url: "https://medium.com/feed/daangn"
+      name: "당근"
+
+  keyword_filters:
+    enabled: true
+    high_priority:
+      - "AI"
+      - "ChatGPT"
+      - "GPT"
+      - "Gemini"
+      - "LLM"
+      - "Claude"
+      - "인공지능"
+      - "Artificial Intelligence"
+      - "딥러닝"
+      - "Deep Learning"
+      - "RAG"
+    medium_priority:
+      - "Python"
+      - "Docker"
+      - "AWS"
+      - "Kubernetes"
+      - "머신러닝"
+      - "Machine Learning"
+      - "TypeScript"
+      - "React"
+      - "Next.js"
+      - "Spring"
+      - "Kotlin"
+    low_priority:
+      - "프로그래밍"
+      - "Programming"
+      - "개발"
+      - "Development"
+      - "코딩"
+      - "Coding"
+      - "아키텍처"
+      - "Architecture"
+      - "MSA"
+    exclude:
+      - "광고"
+      - "Advertisement"
+      - "스폰서"
+      - "Sponsored"
+      - "홍보"
+      - "Promotion"
+      - "제휴"
+      - "Partnership"
+      - "채용"
+      - "Hiring"
+      - "Recruitment"
+
+주식/경제:
+  enabled: true
+  emoji: "📈"
+  feeds:
+    # 미국 주식/경제
+    - url: "https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC"
+      name: "Yahoo S&P500"
+    - url: "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+      name: "CNBC"
+    - url: "https://feeds.bloomberg.com/markets/news.rss"
+      name: "Bloomberg"
+
+    # Seeking Alpha (미국 주식 분석)
+    - url: "https://seekingalpha.com/market_currents.xml"
+      name: "Seeking Alpha"
+
+    # 한국 경제
+    - url: "https://www.hankyung.com/feed/all-news"
+      name: "한국경제"
+    - url: "https://rss.etnews.com/Section901.xml"
+      name: "전자신문"
+
+  keyword_filters:
+    enabled: true
+    high_priority:
+      - "NVIDIA"
+      - "엔비디아"
+      - "Tesla"
+      - "테슬라"
+      - "Apple"
+      - "애플"
+      - "Microsoft"
+      - "마이크로소프트"
+      - "Google"
+      - "구글"
+      - "Amazon"
+      - "아마존"
+      - "반도체"
+      - "Semiconductor"
+      - "AI주"
+      - "AI Stock"
+      - "빅테크"
+      - "Big Tech"
+      - "나스닥"
+      - "NASDAQ"
+      - "S&P"
+    medium_priority:
+      - "주가"
+      - "Stock Price"
+      - "실적"
+      - "Earnings"
+      - "IPO"
+      - "공모주"
+      - "배당"
+      - "Dividend"
+      - "ETF"
+      - "금리"
+      - "Interest Rate"
+      - "Fed"
+      - "연준"
+      - "인플레이션"
+      - "Inflation"
+      - "GDP"
+    low_priority:
+      - "투자"
+      - "Investment"
+      - "증시"
+      - "Stock Market"
+      - "코스피"
+      - "KOSPI"
+      - "코스닥"
+      - "KOSDAQ"
+      - "다우"
+      - "Dow"
+      - "환율"
+      - "Exchange Rate"
+    exclude:
+      - "광고"
+      - "Advertisement"
+      - "스폰서"
+      - "Sponsored"
+      - "보험"
+      - "Insurance"
+      - "대출"
+      - "Loan"
+      - "카드추천"
+      - "Card Recommendation"
+
+기술블로그:
+  enabled: true
+  emoji: "🔧"
+  feeds:
+    # 개인 기술 블로그
+    - url: "https://blog.outsider.ne.kr/rss"
+      name: "Outsider"
+    - url: "https://jojoldu.tistory.com/rss"
+      name: "향로"
+    - url: "https://cheese10yun.github.io/feed.xml"
+      name: "Cheese10"
+
+    # 해외 유명 블로그
+    - url: "https://martinfowler.com/feed.atom"
+      name: "Martin Fowler"
+    - url: "https://blog.pragmaticengineer.com/rss/"
+      name: "Pragmatic Engineer"
+
+  keyword_filters:
+    enabled: false # 모든 글 받기
+
+블로그:
+  enabled: true
+  emoji: "📝"
+  feeds:
+    - url: "https://rss.blog.naver.com/ranto28.xml"
+      name: "개인블로그"
+
+  keyword_filters:
+    enabled: false

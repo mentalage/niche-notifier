@@ -1,14 +1,21 @@
 """Configuration module for Notify Niche.
 
 Loads environment variables and defines RSS feed URLs.
+Supports external YAML configuration for feeds.
 """
 
 import os
 from typing import Optional
+from pathlib import Path
+
+import yaml
 from dotenv import load_dotenv
 
 # Load environment variables from .env file (for local development)
 load_dotenv()
+
+# YAML config file path (project root)
+FEEDS_CONFIG_PATH = Path(__file__).parent.parent / "feeds.yaml"
 
 
 def get_env_var(name: str, required: bool = True) -> Optional[str]:
@@ -45,12 +52,36 @@ def get_discord_webhook_url() -> str:
     return get_env_var("DISCORD_WEBHOOK_URL") or ""
 
 
-# Category-Based RSS Feed Configuration
-# Each category has its own feeds and keyword filters
+def load_feed_categories(config_path: Path = None) -> dict:
+    """Load feed categories from YAML file or use defaults.
+    
+    Args:
+        config_path: Path to YAML config file (defaults to FEEDS_CONFIG_PATH)
+        
+    Returns:
+        Dictionary of feed category configurations
+    """
+    path = config_path or FEEDS_CONFIG_PATH
+    
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                categories = yaml.safe_load(f)
+                if categories:
+                    print(f"Loaded feed config from {path}")
+                    return categories
+        except Exception as e:
+            print(f"Error loading {path}: {e}, using defaults")
+    
+    return DEFAULT_FEED_CATEGORIES
+
+
+# Default Category-Based RSS Feed Configuration (fallback)
+# Used when feeds.yaml is not present or has errors
 # feeds can be either:
 #   - string: URL only (backward compatible)
 #   - dict: {"url": "...", "name": "..."} with display name
-FEED_CATEGORIES = {
+DEFAULT_FEED_CATEGORIES = {
     "개발": {
         "enabled": True,
         "emoji": "💻",
@@ -171,3 +202,6 @@ FEED_CATEGORIES = {
         }
     },
 }
+
+# Load from YAML file or use defaults
+FEED_CATEGORIES = load_feed_categories()
