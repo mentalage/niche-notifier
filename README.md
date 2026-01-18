@@ -102,13 +102,53 @@ notify-niche/
 │   ├── db.py          # Supabase 연동 (중복 방지)
 │   ├── notifier.py    # Discord 알림 (카테고리 그룹화)
 │   └── main.py        # 메인 워크플로우 오케스트레이션
+├── api/               # FastAPI Backend (Web UI용)
+│   ├── main.py        # FastAPI 앱 진입점
+│   ├── schemas.py     # Pydantic 모델
+│   └── routers/       # API 라우터
+├── web/               # React Frontend
+│   ├── src/
+│   │   ├── App.jsx    # 메인 앱 컴포넌트
+│   │   └── components/ # UI 컴포넌트
+│   └── package.json
 ├── .github/workflows/
 │   └── main.yml       # GitHub Actions 자동화 설정
 ├── migrations/        # DB 스키마 변경 이력
+├── tests/             # 테스트 코드
 ├── plans/             # 기능 구현 설계 문서
 ├── requirements.txt
 └── pyproject.toml
 ```
+
+## 🖥️ Web Client (Optional)
+
+피드 관리를 위한 웹 UI를 제공합니다.
+
+### Backend 실행
+
+```bash
+# FastAPI 서버 시작
+uvicorn api.main:app --reload
+```
+
+- API 서버: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Frontend 실행
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+- 웹 앱: http://localhost:5173
+
+### 주요 기능
+
+- **피드 관리**: CRUD 작업 (추가, 수정, 삭제, 활성화 토글)
+- **최근 기사**: 수집된 기사 목록 확인
+- **Discord 미리보기**: 알림이 어떻게 표시될지 미리 확인
 
 ## 📄 License
 
