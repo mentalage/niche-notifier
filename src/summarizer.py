@@ -16,7 +16,7 @@ from src.parser import Article
 # Gemini 설정
 GEMINI_MODEL = "gemini-2.0-flash"
 MAX_CONTENT_LENGTH = 10000  # 본문 최대 길이 (토큰 비용 최적화)
-RATE_LIMIT_DELAY = 0.5  # API 호출 간 대기 시간 (초)
+RATE_LIMIT_DELAY = 4  # API 호출 간 대기 시간 (초)
 
 
 def get_gemini_api_key() -> str:
