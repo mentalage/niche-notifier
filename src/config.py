@@ -62,9 +62,19 @@ def get_gemini_model() -> str:
     return get_env_var("GEMINI_MODEL", required=False) or "gemini-2.0-flash-exp"
 
 
+def get_ollama_base_url() -> str:
+    """Get Ollama base URL from environment (default: http://localhost:11434)."""
+    return get_env_var("OLLAMA_BASE_URL", required=False) or ""
+
+
+def get_ollama_model() -> str:
+    """Get Ollama model name from environment (default: gemma2:9b)."""
+    return get_env_var("OLLAMA_MODEL", required=False) or "gemma2:9b"
+
+
 def is_ai_summary_enabled() -> bool:
     """Check if AI summary feature is enabled."""
-    return bool(get_gemini_api_key())
+    return bool(get_gemini_api_key() or get_ollama_base_url())
 
 
 def load_feed_categories(config_path: Path = None) -> dict:

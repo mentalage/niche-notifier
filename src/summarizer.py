@@ -38,6 +38,16 @@ def get_gemini_model() -> str:
     return get_env_var("GEMINI_MODEL", required=False) or "gemini-2.0-flash-exp"
 
 
+def get_ollama_base_url() -> str:
+    """Get Ollama base URL from environment (default: http://localhost:11434)."""
+    return get_env_var("OLLAMA_BASE_URL", required=False) or "http://localhost:11434"
+
+
+def get_ollama_model() -> str:
+    """Get Ollama model name from environment (default: gemma2:9b)."""
+    return get_env_var("OLLAMA_MODEL", required=False) or "gemma2:9b"
+
+
 # ============================================
 # Content Extraction
 # ============================================
@@ -184,6 +194,61 @@ def generate_summary_gemini(title: str, content: str) -> Optional[str]:
         return None
 
 
+def generate_summary_ollama(title: str, content: str) -> Optional[str]:
+    """Generate summary using local Ollama model.
+
+    Args:
+        title: Article title
+        content: Article content
+
+    Returns:
+        Generated summary or None if failed
+    """
+    base_url = get_ollama_base_url()
+    model = get_ollama_model()
+    prompt = build_summary_prompt(title, content)
+
+    url = f"{base_url}/api/generate"
+
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "num_predict": 300,
+            "temperature": 0.7,
+        }
+    }
+
+    try:
+        response = requests.post(url, json=payload, timeout=REQUEST_TIMEOUT)
+        if response.status_code == 200:
+            data = response.json()
+
+            # Extract summary from response
+            try:
+                summary = data.get("response", "").strip()
+
+                # Clean up common prefixes
+                summary = re.sub(r'^(Summary:|요약:|요약\s*)', '', summary).strip()
+
+                # Limit length
+                if len(summary) > 300:
+                    summary = summary[:297] + "..."
+
+                return summary
+            except Exception as e:
+                print(f"Error parsing Ollama response: {e}")
+                print(f"Response data: {data}")
+                return None
+        else:
+            print(f"Ollama API returned status {response.status_code}: {response.text}")
+            return None
+    except Exception as e:
+        print(f"Error calling Ollama API: {e}")
+        return None
+
+
 # ============================================
 # Main Summarization Pipeline
 # ============================================
@@ -199,6 +264,7 @@ class ArticleSummarizer:
         """
         self.enable_content_extraction = enable_content_extraction
         self.api_key = get_gemini_api_key()
+        self.ollama_base_url = get_ollama_base_url()
 
     def summarize_article(
         self,
@@ -216,9 +282,6 @@ class ArticleSummarizer:
         Returns:
             Generated summary or None if failed
         """
-        if not self.api_key:
-            return None
-
         # Try to extract full content if enabled
         content = ""
 
@@ -233,10 +296,24 @@ class ArticleSummarizer:
         if not content:
             content = title
 
-        # Generate summary
-        summary = generate_summary_gemini(title, content)
+        # Generate summary: Try Ollama first, then Gemini
+        summary = None
 
-        return summary
+        # 1. Try Ollama (local model)
+        if self.ollama_base_url:
+            summary = generate_summary_ollama(title, content)
+            if summary:
+                print(f"Generated summary with Ollama for: {title}")
+                return summary
+
+        # 2. Fall back to Gemini API
+        if self.api_key:
+            summary = generate_summary_gemini(title, content)
+            if summary:
+                print(f"Generated summary with Gemini for: {title}")
+                return summary
+
+        return None
 
     def summarize_batch(
         self,
@@ -250,7 +327,7 @@ class ArticleSummarizer:
         Returns:
             Dictionary mapping article URLs to summaries
         """
-        if not self.api_key:
+        if not self.api_key and not self.ollama_base_url:
             return {}
 
         summaries = {}
