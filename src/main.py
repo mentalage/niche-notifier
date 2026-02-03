@@ -113,14 +113,18 @@ def main() -> None:
 
     # Step 6: Save articles to database
     saved_count = 0
-    for article in new_articles:
-        # Include summary if available
-        summary = article.get("summary")
-        if summary:
-            article["summary"] = summary
-            article["summary_status"] = "completed"
-        if save_article(article):
-            saved_count += 1
+    for category, articles in new_by_category.items():
+        for article in articles:
+            # Set summary_status based on whether summary was generated
+            if article.get("summary"):
+                article["summary_status"] = "completed"
+            elif is_ai_summary_enabled():
+                article["summary_status"] = "failed"
+            else:
+                article["summary_status"] = None
+
+            if save_article(article):
+                saved_count += 1
 
     print(f"\nSaved {saved_count}/{len(new_articles)} new articles to database")
     print("=== Execution complete ===")
