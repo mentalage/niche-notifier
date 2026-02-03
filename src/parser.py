@@ -13,7 +13,7 @@ import re
 MAX_ARTICLES_PER_FEED = 10
 
 
-class Article(TypedDict):
+class Article(TypedDict, total=False):
     """Type definition for an article."""
     title: str
     link: str
@@ -21,6 +21,7 @@ class Article(TypedDict):
     published: Optional[str]
     priority: Optional[str]  # 'high', 'medium', 'low', or None
     category: Optional[str]  # Category name
+    subcategory: Optional[str]  # Subcategory name (e.g., GICS sector)
     feed_url: Optional[str]  # Source feed URL
     feed_name: Optional[str]  # Display name of the feed
 
@@ -216,9 +217,13 @@ def parse_feeds_by_category(categories: dict) -> dict:
             
             articles = parse_feed(feed_url, feed_name=feed_name)
             
-            # Set category for each article
+            # Set category and subcategory for each article
             for article in articles:
                 article["category"] = category_name
+                # Set subcategory if configured (e.g., GICS sector name)
+                subcategory = config.get("gics_sector") or config.get("subcategory")
+                if subcategory:
+                    article["subcategory"] = subcategory
             
             category_articles.extend(articles)
             print(f"Parsed {len(articles)} articles from {feed_name or feed_url}")

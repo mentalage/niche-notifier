@@ -39,6 +39,9 @@ class CategoryInfo(BaseModel):
     emoji: str
     feed_count: int
     enabled: bool
+    parent: Optional[str] = None
+    description: Optional[str] = None
+    gics_sector: Optional[str] = None
 
 
 class ArticleSummary(BaseModel):
@@ -46,8 +49,12 @@ class ArticleSummary(BaseModel):
     title: str
     link: str
     category: Optional[str] = None
+    subcategory: Optional[str] = None  # e.g., GICS sector name
     priority: Optional[str] = None
     published_at: Optional[datetime] = None
+    # Reserved for future AI summary feature
+    summary: Optional[str] = None
+    summary_status: Optional[str] = None  # e.g., "pending", "completed", "failed"
 
 
 class DiscordEmbed(BaseModel):
@@ -62,6 +69,7 @@ class DiscordEmbed(BaseModel):
 class PreviewRequest(BaseModel):
     """Schema for preview request."""
     category: Optional[str] = None
+    parent: Optional[str] = None  # Filter by parent category (e.g., "주식/경제")
     limit: int = 5
 
 

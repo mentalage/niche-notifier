@@ -70,7 +70,11 @@ def save_article(article: Article) -> bool:
             "title": article["title"],
             "published_at": article["published"],
             "category": article.get("category"),
+            "subcategory": article.get("subcategory"),  # GICS sector or custom subcategory
             "priority": article.get("priority"),
+            # Future AI summary fields
+            "summary": None,  # Reserved for AI-generated summary
+            "summary_status": None,  # Reserved for summary generation status
         }, on_conflict="link").execute()
         return True
     except Exception as e:

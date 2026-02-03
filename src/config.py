@@ -137,39 +137,204 @@ DEFAULT_FEED_CATEGORIES = {
         }
     },
     
-    "주식/경제": {
+    "정보기술": {
         "enabled": True,
-        "emoji": "📈",
+        "emoji": "💻",
+        "parent": "주식/경제",
+        "description": "소프트웨어, 하드웨어, 반도체, IT 서비스",
+        "gics_sector": "Information Technology",
         "feeds": [
-            # 미국 주식/경제
             {"url": "https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC", "name": "Yahoo S&P500"},
-            {"url": "https://www.cnbc.com/id/100003114/device/rss/rss.html", "name": "CNBC"},
-            {"url": "https://feeds.bloomberg.com/markets/news.rss", "name": "Bloomberg"},
-            
-            # Seeking Alpha (미국 주식 분석)
-            {"url": "https://seekingalpha.com/market_currents.xml", "name": "Seeking Alpha"},
-            
-            # 한국 경제
-            {"url": "https://www.hankyung.com/feed/all-news", "name": "한국경제"},
-            {"url": "https://rss.etnews.com/Section901.xml", "name": "전자신문"},
+            {"url": "https://www.cnbc.com/id/100003114/device/rss/rss.html", "name": "CNBC Tech"},
         ],
         "keyword_filters": {
             "enabled": True,
             "high_priority": [
-                "NVIDIA", "엔비디아", "Tesla", "테슬라", "Apple", "애플",
-                "Microsoft", "마이크로소프트", "Google", "구글", "Amazon", "아마존",
-                "반도체", "AI주", "빅테크", "나스닥", "NASDAQ", "S&P"
+                "NVIDIA", "엔비디아", "Apple", "애플",
+                "Microsoft", "마이크로소프트", "Google", "구글", "반도체", "Semiconductor",
+                "AI주", "Chip", "TSMC", "AMD", "Intel"
             ],
             "medium_priority": [
-                "주가", "실적", "IPO", "공모주", "배당", "ETF",
-                "금리", "Fed", "연준", "인플레이션", "GDP"
+                "소프트웨어", "Software", "클라우드", "Cloud", "SaaS", "데이터센터"
             ],
-            "low_priority": [
-                "투자", "증시", "코스피", "코스닥", "다우", "환율"
+            "low_priority": ["IT", "테크", "Tech"],
+            "exclude": ["광고", "Advertisement"]
+        }
+    },
+
+    "통신서비스": {
+        "enabled": True,
+        "emoji": "📡",
+        "parent": "주식/경제",
+        "description": "통신, 미디어, 엔터테인먼트",
+        "gics_sector": "Communication Services",
+        "feeds": [
+            {"url": "https://feeds.bloomberg.com/markets/news.rss", "name": "Bloomberg Media"},
+        ],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": [
+                "Meta", "Facebook", "Netflix", "디즈니", "Disney", "유튜브", "YouTube", "알파벳"
             ],
-            "exclude": [
-                "광고", "스폰서", "보험", "대출", "카드추천"
-            ]
+            "medium_priority": ["스트리밍", "Streaming", "미디어", "Media", "방송"],
+            "low_priority": ["통신", "Telecom"],
+            "exclude": []
+        }
+    },
+
+    "금융": {
+        "enabled": True,
+        "emoji": "🏦",
+        "parent": "주식/경제",
+        "description": "은행, 보험, 증권, 카드",
+        "gics_sector": "Financials",
+        "feeds": [
+            {"url": "https://seekingalpha.com/market_currents.xml", "name": "Seeking Alpha"},
+        ],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": [
+                "JPMorgan", "Bank of America", "워런 버핏", "Berkshire Hathaway", "비자", "Visa"
+            ],
+            "medium_priority": ["은행", "Bank", "금리", "Fed", "연준", "ETF"],
+            "low_priority": ["금융", "Finance"],
+            "exclude": []
+        }
+    },
+
+    "헬스케어": {
+        "enabled": True,
+        "emoji": "🏥",
+        "parent": "주식/경제",
+        "description": "제약, 바이오, 의료기기",
+        "gics_sector": "Health Care",
+        "feeds": [],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": [
+                "Johnson & Johnson", "Pfizer", "화이자", "Moderna", "모더나", "바이오"
+            ],
+            "medium_priority": ["백신", "Vaccine", "임상", "Clinical", "FDA"],
+            "low_priority": ["의료", "Healthcare"],
+            "exclude": []
+        }
+    },
+
+    "임의소비재": {
+        "enabled": True,
+        "emoji": "🛍️",
+        "parent": "주식/경제",
+        "description": "자동차, 리테일, 레저, 호텔",
+        "gics_sector": "Consumer Discretionary",
+        "feeds": [
+            {"url": "https://www.hankyung.com/feed/all-news", "name": "한국경제"},
+        ],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": [
+                "Tesla", "테슬라", "Amazon", "아마존", "McDonald's", "맥도날드", "Nike"
+            ],
+            "medium_priority": ["리테일", "Retail", "전자상거래", "E-commerce"],
+            "low_priority": ["소비재", "Consumer"],
+            "exclude": []
+        }
+    },
+
+    "에너지": {
+        "enabled": True,
+        "emoji": "⛽",
+        "parent": "주식/경제",
+        "description": "석유, 가스, 에너지 설비",
+        "gics_sector": "Energy",
+        "feeds": [],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": ["Exxon", "Chevron", "원유", "Crude Oil", "천연가스"],
+            "medium_priority": ["석유", "Oil", "에너지", "Energy", "OPEC"],
+            "low_priority": ["정유", "Refinery"],
+            "exclude": []
+        }
+    },
+
+    "산업재": {
+        "enabled": True,
+        "emoji": "🏭",
+        "parent": "주식/경제",
+        "description": "항공우주, 방산, 건설, 물류",
+        "gics_sector": "Industrials",
+        "feeds": [
+            {"url": "https://rss.etnews.com/Section901.xml", "name": "전자신문"},
+        ],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": ["Boeing", "보잉", "Lockheed", "방산", "Defense", "항공"],
+            "medium_priority": ["건설", "Construction", "물류", "Logistics"],
+            "low_priority": ["산업", "Industry"],
+            "exclude": []
+        }
+    },
+
+    "필수소비재": {
+        "enabled": True,
+        "emoji": "🛒",
+        "parent": "주식/경제",
+        "description": "식품, 음료, household products",
+        "gics_sector": "Consumer Staples",
+        "feeds": [],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": ["Coca-Cola", "코카콜라", "Pepsi", "펩시", "Walmart", "월마트"],
+            "medium_priority": ["식품", "Food", "음료", "Beverage"],
+            "low_priority": ["소비재", "Staples"],
+            "exclude": []
+        }
+    },
+
+    "공공요금": {
+        "enabled": True,
+        "emoji": "⚡",
+        "parent": "주식/경제",
+        "description": "전력, 가스, 수도",
+        "gics_sector": "Utilities",
+        "feeds": [],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": ["전력", "Electricity", "발전", "Power Generation"],
+            "medium_priority": ["가스", "수도", "Utility"],
+            "low_priority": ["공공", "Public"],
+            "exclude": []
+        }
+    },
+
+    "부동산": {
+        "enabled": True,
+        "emoji": "🏠",
+        "parent": "주식/경제",
+        "description": "부동산, REITs",
+        "gics_sector": "Real Estate",
+        "feeds": [],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": ["REIT", "리츠", "Prologis"],
+            "medium_priority": ["주택", "Housing", "상업용 부동산", "Commercial"],
+            "low_priority": ["부동산", "Real Estate"],
+            "exclude": []
+        }
+    },
+
+    "소재": {
+        "enabled": True,
+        "emoji": "🔩",
+        "parent": "주식/경제",
+        "description": "화학, 금속, 건축자재",
+        "gics_sector": "Materials",
+        "feeds": [],
+        "keyword_filters": {
+            "enabled": True,
+            "high_priority": ["Dow", "다우", "화학", "Chemical", "철강", "Steel"],
+            "medium_priority": ["금속", "Metal", "자재", "Materials"],
+            "low_priority": ["소재"],
+            "exclude": []
         }
     },
     

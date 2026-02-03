@@ -25,17 +25,55 @@ curl -sSL https://install.python-poetry.org | python3 -
 
 ### 2. Supabase 설정
 
-[Supabase](https://supabase.com)에서 프로젝트를 생성하고 `migrations/` 폴더의 SQL 파일들을 순서대로 실행하거나 아래 통합 SQL을 실행하세요:
+[Supabase](https://supabase.com)에서 프로젝트를 생성하고 DB 스키마를 설정합니다.
+
+#### Migration 실행 (권장)
+
+```bash
+# Supabase CLI 설치
+npm install -g supabase
+
+# 프로젝트 연결
+supabase link --project-ref YOUR_PROJECT_REF
+
+# 모든 migration 실행
+supabase db push
+```
+
+또는 [Supabase Dashboard](https://app.supabase.com) → SQL Editor에서 `migrations/` 폴더의 SQL 파일들을 순서대로 실행하세요:
+- `000_initial_schema.sql`
+- `001_add_category_priority.sql`
+- `002_add_feeds_table.sql`
+- `003_add_subcategory_summary_fields.sql` (GICS 분류 및 AI 요약)
+
+상세 가이드는 [MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md)를 참조하세요.
+
+#### 기본 테이블 구조
 
 ```sql
+-- processed_articles: 수집된 기사
 CREATE TABLE processed_articles (
   id SERIAL PRIMARY KEY,
   link TEXT UNIQUE NOT NULL,
   title TEXT,
-  category TEXT,
-  priority TEXT,
+  category TEXT,          -- 카테고리 (예: 개발, 정보기술)
+  subcategory TEXT,       -- 하위 카테고리/GICS 섹터 (예: Information Technology)
+  priority TEXT,          -- 우선순위 (high/medium/low)
+  summary TEXT,           -- AI 요약 (향후 추가 예정)
+  summary_status TEXT,    -- 요약 상태 (pending/completed/failed)
   published_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- feeds: RSS 피드 관리
+CREATE TABLE feeds (
+  id SERIAL PRIMARY KEY,
+  url TEXT UNIQUE NOT NULL,
+  name TEXT,
+  category TEXT NOT NULL,
+  enabled BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_fetched_at TIMESTAMP
 );
 ```
 
