@@ -23,15 +23,31 @@ def get_client() -> Client:
 
 def get_processed_links() -> Set[str]:
     """Get all processed article links from database.
-    
+
     Returns:
         Set of links that have already been processed
     """
     client = get_client()
-    
+
     try:
-        response = client.table(TABLE_NAME).select("link").execute()
-        return {row["link"] for row in response.data}
+        # Fetch all links with pagination to handle large datasets
+        all_links = set()
+        batch_size = 1000
+        start = 0
+        end = batch_size - 1
+
+        while True:
+            response = client.table(TABLE_NAME).select("link").range(start, end).execute()
+            if not response.data:
+                break
+            all_links.update(row["link"] for row in response.data)
+            # If we got less than batch_size, we've fetched all records
+            if len(response.data) < batch_size:
+                break
+            start += batch_size
+            end += batch_size
+
+        return all_links
     except Exception as e:
         print(f"Error fetching processed links: {e}")
         return set()
