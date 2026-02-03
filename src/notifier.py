@@ -73,31 +73,39 @@ def build_category_header_embed(category_name: str, emoji: str, article_count: i
 
 def build_article_embed(article: Article, category_name: str, emoji: str) -> dict:
     """Build a Discord embed for a single article.
-    
+
     Args:
-        article: Article dictionary with title, link, description, priority
+        article: Article dictionary with title, link, description, priority, summary
         category_name: Name of the category for footer
         emoji: Category emoji for footer
-        
+
     Returns:
         Discord embed dictionary
     """
     priority = article.get("priority")
     color = PRIORITY_COLORS.get(priority, PRIORITY_COLORS[None])
     icon = PRIORITY_ICONS.get(priority, "•")
-    
-    # Truncate title and description
+
+    # Truncate title
     title = truncate_text(article['title'], MAX_EMBED_TITLE_LENGTH - len(icon) - 1)
+
+    # Prefer AI summary over description
+    summary = article.get("summary")
     description = article.get("description", "")
-    if description:
-        description = truncate_text(description, 500)  # Use 500 chars for cleaner display
-    
+
+    if summary:
+        # Use AI summary with indicator
+        description = f"🤖 **AI 요약:**\n{summary}"
+    elif description:
+        # Fall back to original description
+        description = truncate_text(description, 500)
+
     # Build footer text with optional feed name
     footer_text = f"{emoji} {category_name}"
     feed_name = article.get("feed_name")
     if feed_name:
         footer_text += f" - {feed_name}"
-    
+
     embed = {
         "title": f"{icon} {title}",
         "url": article['link'],
@@ -106,10 +114,10 @@ def build_article_embed(article: Article, category_name: str, emoji: str) -> dic
             "text": footer_text
         }
     }
-    
+
     if description:
         embed["description"] = description
-    
+
     return embed
 
 

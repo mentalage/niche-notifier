@@ -55,27 +55,32 @@ def get_processed_links() -> Set[str]:
 
 def save_article(article: Article) -> bool:
     """Save a new article to the database.
-    
+
     Args:
         article: Article data to save
-        
+
     Returns:
         True if saved successfully, False otherwise
     """
     client = get_client()
-    
+
     try:
-        client.table(TABLE_NAME).upsert({
+        data = {
             "link": article["link"],
             "title": article["title"],
             "published_at": article["published"],
             "category": article.get("category"),
             "subcategory": article.get("subcategory"),  # GICS sector or custom subcategory
             "priority": article.get("priority"),
-            # Future AI summary fields
-            "summary": None,  # Reserved for AI-generated summary
-            "summary_status": None,  # Reserved for summary generation status
-        }, on_conflict="link").execute()
+            # AI summary fields
+            "summary": article.get("summary"),
+            "summary_status": article.get("summary_status"),
+        }
+
+        # Remove None values to avoid overwriting existing data with None
+        data = {k: v for k, v in data.items() if v is not None}
+
+        client.table(TABLE_NAME).upsert(data, on_conflict="link").execute()
         return True
     except Exception as e:
         print(f"Error saving article: {e}")

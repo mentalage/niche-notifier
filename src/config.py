@@ -52,6 +52,21 @@ def get_discord_webhook_url() -> str:
     return get_env_var("DISCORD_WEBHOOK_URL") or ""
 
 
+def get_gemini_api_key() -> str:
+    """Get Gemini API key from environment."""
+    return get_env_var("GEMINI_API_KEY", required=False) or ""
+
+
+def get_gemini_model() -> str:
+    """Get Gemini model name from environment (default: gemini-2.0-flash-exp)."""
+    return get_env_var("GEMINI_MODEL", required=False) or "gemini-2.0-flash-exp"
+
+
+def is_ai_summary_enabled() -> bool:
+    """Check if AI summary feature is enabled."""
+    return bool(get_gemini_api_key())
+
+
 def load_feed_categories(config_path: Path = None) -> dict:
     """Load feed categories from YAML file or use defaults.
     
