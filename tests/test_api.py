@@ -103,40 +103,104 @@ class TestFeedsAPI:
 
 class TestCategoriesAPI:
     """Test categories API endpoints."""
-    
+
     @patch('apps.api.routers.categories.get_feeds')
     @patch('apps.api.routers.categories.FEED_CATEGORIES', {
         "개발": {"emoji": "💻", "enabled": True},
+        "정보기술": {"emoji": "💻", "enabled": True, "parent": "주식/경제", "gics_sector": "Information Technology"},
         "블로그": {"emoji": "📝", "enabled": True}
     })
     def test_list_categories(self, mock_get_feeds):
         """Should return list of categories."""
         mock_get_feeds.return_value = [{"url": "test"}]
-        
+
         response = client.get("/api/categories")
-        
+
+        assert response.status_code == 200
+        categories = response.json()
+        assert len(categories) == 3
+
+    @patch('apps.api.routers.categories.get_feeds')
+    @patch('apps.api.routers.categories.FEED_CATEGORIES', {
+        "개발": {"emoji": "💻", "enabled": True},
+        "정보기술": {"emoji": "💻", "enabled": True, "parent": "주식/경제", "gics_sector": "Information Technology"},
+        "금융": {"emoji": "🏦", "enabled": True, "parent": "주식/경제", "gics_sector": "Financials"},
+    })
+    def test_list_categories_by_parent(self, mock_get_feeds):
+        """Should filter categories by parent."""
+        mock_get_feeds.return_value = [{"url": "test"}]
+
+        response = client.get("/api/categories?parent=주식/경제")
+
         assert response.status_code == 200
         categories = response.json()
         assert len(categories) == 2
+        assert all(cat["parent"] == "주식/경제" for cat in categories)
+
+    @patch('apps.api.routers.categories.get_feeds')
+    @patch('apps.api.routers.categories.FEED_CATEGORIES', {
+        "개발": {"emoji": "💻", "enabled": True},
+        "정보기술": {"emoji": "💻", "enabled": True, "parent": "주식/경제", "gics_sector": "Information Technology"},
+    })
+    def test_list_gics_categories(self, mock_get_feeds):
+        """Should filter categories to only GICS sectors."""
+        mock_get_feeds.return_value = [{"url": "test"}]
+
+        response = client.get("/api/categories?include_gics=true")
+
+        assert response.status_code == 200
+        categories = response.json()
+        assert len(categories) == 1
+        assert categories[0]["name"] == "정보기술"
+        assert categories[0]["gics_sector"] == "Information Technology"
 
 
 class TestArticlesAPI:
     """Test articles API endpoints."""
-    
+
     @patch('apps.api.routers.articles.get_client')
     def test_list_articles(self, mock_get_client):
         """Should return list of articles."""
         mock_client = MagicMock()
         mock_client.table.return_value.select.return_value.order.return_value.range.return_value.execute.return_value.data = [
-            {"title": "Test Article", "link": "https://example.com/1", "category": "개발", "priority": "high"}
+            {
+                "title": "Test Article",
+                "link": "https://example.com/1",
+                "category": "정보기술",
+                "subcategory": "Information Technology",
+                "priority": "high",
+                "summary": None,
+                "summary_status": None
+            }
         ]
         mock_get_client.return_value = mock_client
-        
+
         response = client.get("/api/articles?limit=10")
-        
+
         assert response.status_code == 200
-        assert len(response.json()) == 1
-    
+        articles = response.json()
+        assert len(articles) == 1
+        assert articles[0]["subcategory"] == "Information Technology"
+
+    @patch('apps.api.routers.articles.get_client')
+    @patch('apps.api.routers.articles.FEED_CATEGORIES', {
+        "정보기술": {"parent": "주식/경제"},
+        "금융": {"parent": "주식/경제"}
+    })
+    def test_list_articles_by_parent(self, mock_get_client):
+        """Should filter articles by parent category."""
+        mock_client = MagicMock()
+        mock_client.table.return_value.select.return_value.order.return_value.in_.return_value.range.return_value.execute.return_value.data = [
+            {"title": "Tech News", "link": "https://example.com/1", "category": "정보기술", "priority": "high"}
+        ]
+        mock_get_client.return_value = mock_client
+
+        response = client.get("/api/articles?parent=주식/경제&limit=10")
+
+        assert response.status_code == 200
+        articles = response.json()
+        assert len(articles) == 1
+
     @patch('apps.api.routers.articles.get_client')
     def test_generate_preview(self, mock_get_client):
         """Should generate Discord preview."""
@@ -145,9 +209,9 @@ class TestArticlesAPI:
             {"title": "Test Article", "link": "https://example.com/1", "category": "개발", "priority": "high"}
         ]
         mock_get_client.return_value = mock_client
-        
+
         response = client.post("/api/preview", json={"limit": 5})
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "header" in data

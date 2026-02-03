@@ -88,11 +88,14 @@ class TestLoadFeedCategories:
 
 class TestDefaultFeedCategories:
     """Test DEFAULT_FEED_CATEGORIES structure."""
-    
+
     def test_has_required_categories(self):
         """Test that default config has expected categories."""
         assert "개발" in DEFAULT_FEED_CATEGORIES
-        assert "주식/경제" in DEFAULT_FEED_CATEGORIES
+        # GICS sectors under "주식/경제"
+        assert "정보기술" in DEFAULT_FEED_CATEGORIES
+        assert "금융" in DEFAULT_FEED_CATEGORIES
+        assert "헬스케어" in DEFAULT_FEED_CATEGORIES
     
     def test_category_has_required_fields(self):
         """Test that each category has required fields."""
@@ -111,9 +114,42 @@ class TestDefaultFeedCategories:
 
 class TestFeedsConfigPath:
     """Test FEEDS_CONFIG_PATH constant."""
-    
+
     def test_points_to_project_root(self):
-        """Test that config path points to project root."""
-        # FEEDS_CONFIG_PATH should be at project root level
+        """Test that config path points to config directory."""
+        # FEEDS_CONFIG_PATH should be in config directory
         assert FEEDS_CONFIG_PATH.name == "feeds.yaml"
-        assert FEEDS_CONFIG_PATH.parent.name == "notify-niche"
+        assert FEEDS_CONFIG_PATH.parent.name == "config"
+
+
+class TestGICSSectors:
+    """Test GICS sector configuration."""
+
+    def test_gics_sectors_have_parent(self):
+        """Test that GICS sectors have parent category."""
+        gics_sectors = ["정보기술", "금융", "헬스케어", "에너지", "산업재"]
+        for sector in gics_sectors:
+            if sector in DEFAULT_FEED_CATEGORIES:
+                config = DEFAULT_FEED_CATEGORIES[sector]
+                assert config.get("parent") == "주식/경제", \
+                    f"{sector} should have parent '주식/경제'"
+
+    def test_gics_sectors_have_gics_sector_field(self):
+        """Test that GICS sectors have gics_sector field."""
+        gics_sectors = ["정보기술", "금융", "헬스케어", "에너지", "산업재"]
+        for sector in gics_sectors:
+            if sector in DEFAULT_FEED_CATEGORIES:
+                config = DEFAULT_FEED_CATEGORIES[sector]
+                assert "gics_sector" in config, f"{sector} missing 'gics_sector'"
+                assert config["gics_sector"] is not None
+
+    def test_all_11_gics_sectors_exist(self):
+        """Test that all 11 GICS sectors are represented."""
+        expected_gics_sectors = [
+            "정보기술", "통신서비스", "금융", "헬스케어",
+            "임의소비재", "에너지", "산업재", "필수소비재",
+            "공공요금", "부동산", "소재"
+        ]
+        for sector in expected_gics_sectors:
+            assert sector in DEFAULT_FEED_CATEGORIES, \
+                f"GICS sector '{sector}' not found in DEFAULT_FEED_CATEGORIES"
