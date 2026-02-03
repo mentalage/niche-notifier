@@ -153,16 +153,17 @@ class TestArticleSummarizer:
         with patch("src.summarizer.extract_article_content", mock_extract):
             with patch("src.summarizer.generate_summary_gemini", mock_generate):
                 with patch("src.summarizer.get_gemini_api_key", return_value="test-key"):
-                    summarizer = ArticleSummarizer()
-                    result = summarizer.summarize_article(
-                        "Test Title",
-                        "https://example.com/article",
-                        "Description"
-                    )
+                    with patch("src.summarizer.get_ollama_base_url", return_value=""):
+                        summarizer = ArticleSummarizer()
+                        result = summarizer.summarize_article(
+                            "Test Title",
+                            "https://example.com/article",
+                            "Description"
+                        )
 
-                    assert result == "AI-generated summary"
-                    mock_extract.assert_called_once_with("https://example.com/article")
-                    mock_generate.assert_called_once()
+                        assert result == "AI-generated summary"
+                        mock_extract.assert_called_once_with("https://example.com/article")
+                        mock_generate.assert_called_once()
 
     def test_summarize_article_falls_back_to_description(self):
         """Test that summarizer falls back to description when extraction fails."""
@@ -172,28 +173,30 @@ class TestArticleSummarizer:
         with patch("src.summarizer.extract_article_content", mock_extract):
             with patch("src.summarizer.generate_summary_gemini", mock_generate):
                 with patch("src.summarizer.get_gemini_api_key", return_value="test-key"):
-                    summarizer = ArticleSummarizer()
-                    result = summarizer.summarize_article(
-                        "Test Title",
-                        "https://example.com/article",
-                        "Fallback description"
-                    )
+                    with patch("src.summarizer.get_ollama_base_url", return_value=""):
+                        summarizer = ArticleSummarizer()
+                        result = summarizer.summarize_article(
+                            "Test Title",
+                            "https://example.com/article",
+                            "Fallback description"
+                        )
 
-                    assert result == "AI-generated summary"
-                    # Should use description as content
-                    mock_generate.assert_called_once_with("Test Title", "Fallback description")
+                        assert result == "AI-generated summary"
+                        # Should use description as content
+                        mock_generate.assert_called_once_with("Test Title", "Fallback description")
 
     def test_summarize_article_no_api_key(self):
         """Test that summarizer returns None without API key."""
         with patch("src.summarizer.get_gemini_api_key", return_value=""):
-            summarizer = ArticleSummarizer()
-            result = summarizer.summarize_article(
-                "Test Title",
-                "https://example.com/article",
-                "Description"
-            )
+            with patch("src.summarizer.get_ollama_base_url", return_value=""):
+                summarizer = ArticleSummarizer()
+                result = summarizer.summarize_article(
+                    "Test Title",
+                    "https://example.com/article",
+                    "Description"
+                )
 
-            assert result is None
+                assert result is None
 
     def test_summarize_batch(self):
         """Test batch summarization."""

@@ -7,36 +7,37 @@ from src.db import get_processed_links, save_article, filter_new_articles
 
 class TestGetProcessedLinks:
     """Test cases for get_processed_links function."""
-    
+
     @patch('src.db.get_supabase_key', return_value='test-key')
     @patch('src.db.get_supabase_url', return_value='https://test.supabase.co')
     @patch('src.db.get_client')
     def test_returns_set_of_links(self, mock_get_client, mock_url, mock_key):
         """Should return set of processed links."""
         mock_client = MagicMock()
-        mock_client.table.return_value.select.return_value.execute.return_value = MagicMock(
-            data=[
-                {'link': 'https://example.com/1'},
-                {'link': 'https://example.com/2'},
-            ]
-        )
+        # Mock the pagination response
+        mock_response = MagicMock()
+        mock_response.data = [
+            {'link': 'https://example.com/1'},
+            {'link': 'https://example.com/2'},
+        ]
+        mock_client.table.return_value.select.return_value.range.return_value.execute.return_value = mock_response
         mock_get_client.return_value = mock_client
-        
+
         result = get_processed_links()
-        
+
         assert result == {'https://example.com/1', 'https://example.com/2'}
-    
+
     @patch('src.db.get_supabase_key', return_value='test-key')
     @patch('src.db.get_supabase_url', return_value='https://test.supabase.co')
     @patch('src.db.get_client')
     def test_returns_empty_set_on_error(self, mock_get_client, mock_url, mock_key):
         """Should return empty set on database error."""
         mock_client = MagicMock()
-        mock_client.table.return_value.select.return_value.execute.side_effect = Exception("DB error")
+        mock_client.table.return_value.select.return_value.range.return_value.execute.side_effect = Exception("DB error")
         mock_get_client.return_value = mock_client
-        
+
         result = get_processed_links()
-        
+
         assert result == set()
 
 
