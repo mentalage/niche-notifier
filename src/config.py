@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file (for local development)
 load_dotenv()
 
-# YAML config file path (project root)
-FEEDS_CONFIG_PATH = Path(__file__).parent.parent / "feeds.yaml"
+# YAML config file path (config directory)
+FEEDS_CONFIG_PATH = Path(__file__).parent.parent / "config" / "feeds.yaml"
 
 
 def get_env_var(name: str, required: bool = True) -> Optional[str]:

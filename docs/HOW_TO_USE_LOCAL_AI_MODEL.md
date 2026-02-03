@@ -27,44 +27,18 @@
 
 ## Docker로 Ollama 실행
 
-### 1. Docker Compose 파일 생성
+### 1. Docker Compose 파일 실행
 
-프로젝트 루트에 `docker-compose.ollama.yml` 파일을 생성합니다:
-
-```yaml
-services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: niche-notifier-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=0.0.0.0
-    restart: unless-stopped
-    # GPU 사용 (선택사항 - NVIDIA GPU가 있는 경우)
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-
-volumes:
-  ollama_data:
-    driver: local
-```
+Docker Compose 파일은 `docker/docker-compose.ollama.yml`에 이미 있습니다.
 
 ### 2. Ollama 컨테이너 실행
 
 ```bash
 # Windows (Git Bash)
-docker-compose -f docker-compose.ollama.yml up -d
+docker-compose -f docker/docker-compose.ollama.yml up -d
 
 # Linux/Mac
-docker compose -f docker-compose.ollama.yml up -d
+docker compose -f docker/docker-compose.ollama.yml up -d
 ```
 
 ### 3. 모델 다운로드

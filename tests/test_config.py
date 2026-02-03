@@ -116,10 +116,10 @@ class TestFeedsConfigPath:
     """Test FEEDS_CONFIG_PATH constant."""
 
     def test_points_to_project_root(self):
-        """Test that config path points to project root."""
-        # FEEDS_CONFIG_PATH should be at project root level
+        """Test that config path points to config directory."""
+        # FEEDS_CONFIG_PATH should be in config directory
         assert FEEDS_CONFIG_PATH.name == "feeds.yaml"
-        assert FEEDS_CONFIG_PATH.parent.name in ["niche-notifier", "notify-niche"]
+        assert FEEDS_CONFIG_PATH.parent.name == "config"
 
 
 class TestGICSSectors:
